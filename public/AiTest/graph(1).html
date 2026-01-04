@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>水库大坝知识图谱可视化</title>
+    <!-- 引入样式和库 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/element-plus"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+        }
+
+        #app {
+            height: 100%;
+            display: flex;
+        }
+
+        /* 图谱容器 */
+        #graph-container {
+            flex: 1;
+            height: 100%;
+            width: 100%;
+            background-color: #f0f2f5;
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            width: 400px;
+            background: #fff;
+            box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+            height: 100%;
+            overflow-y: auto;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: transform 0.3s;
+            z-index: 1000;
+        }
+
+        .sidebar.hidden {
+            transform: translateX(100%);
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fafafa;
+        }
+
+        .sidebar-content {
+            padding: 20px;
+        }
+
+        /* 搜索框 */
+        .search-box {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: #fff;
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 10px;
+        }
+
+        /* 状态指示器 */
+        .status-badge {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .status-0 {
+            background-color: #67C23A;
+        }
+
+        /* 正常 */
+        .status-1 {
+            background-color: #F56C6C;
+        }
+
+        /* 异常 */
+        .status-2 {
+            background-color: #E6A23C;
+        }
+
+        /* 修复 */
+
+        /* 图表容器 */
+        .chart-box {
+            height: 250px;
+            margin-top: 20px;
+        }
+
+        .attribute-item {
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #606266;
+        }
+
+        .attribute-label {
+            font-weight: bold;
+            color: #303133;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <!-- 搜索区域 -->
+        <div class="search-box">
+            <el-autocomplete v-model="searchKeyword" :fetch-suggestions="querySearch" placeholder="搜索传感器/坝段/要素..."
+                @select="handleSelect" style="width: 300px">
+                <template #default="{ item }">
+                    <div class="value" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>{{ item.label }}</span>
+                        <span style="font-size: 12px; color: #999; margin-left: 10px;">{{ item.id }}</span>
+                    </div>
+                    <span class="link" style="font-size: 12px; color: #b4b4b4;">{{ item.category_name }}</span>
+                </template>
+            </el-autocomplete>
+            <el-button type="primary" @click="resetView">重置视图</el-button>
+        </div>
+
+        <!-- ECharts 容器 -->
+        <div id="graph-container"></div>
+
+        <!-- 详情侧边栏 -->
+        <div class="sidebar" :class="{ hidden: !currentNode }">
+            <div class="sidebar-header" v-if="currentNode">
+                <h3>{{ currentNode.label }}</h3>
+                <el-button circle size="small" @click="currentNode = null">
+                    <el-icon>
+                        <Close />
+                    </el-icon>
+                </el-button>
+            </div>
+
+            <div class="sidebar-content" v-if="currentNode">
+                <!-- 基本信息 -->
+                <el-descriptions :column="1" border size="small">
+                    <el-descriptions-item label="ID">{{ currentNode.id }}</el-descriptions-item>
+                    <el-descriptions-item label="类型">{{ currentNode.category_name }} ({{ currentNode.category
+                        }})</el-descriptions-item>
+                    <el-descriptions-item label="层级">Level {{ currentNode.level }}</el-descriptions-item>
+                    <el-descriptions-item label="状态">
+                        <span class="status-badge" :class="'status-' + currentNode.status"></span>
+                        {{ getStatusText(currentNode.status) }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="最新值" v-if="currentNode.value !== null">
+                        {{ currentNode.value }} {{ currentNode.unit }}
+                    </el-descriptions-item>
+                </el-descriptions>
+
+                <!-- 属性列表 -->
+                <div style="margin-top: 20px" v-if="Object.keys(currentNode.attributes).length">
+                    <h4>属性详情</h4>
+                    <div class="attribute-item" v-for="(val, key) in currentNode.attributes" :key="key">
+                        <span class="attribute-label">{{ key }}:</span> {{ val }}
+                    </div>
+                </div>
+
+                <!-- 关联节点 -->
+                <div style="margin-top: 20px" v-if="nodeDetail && nodeDetail.children.length">
+                    <h4>下级节点 ({{ nodeDetail.children.length }})</h4>
+                    <el-tag v-for="child in nodeDetail.children" :key="child.id" style="margin: 2px; cursor: pointer"
+                        @click="focusNode(child.id)">
+                        {{ child.label }}
+                    </el-tag>
+                </div>
+
+                <!-- 图表数据 (仅 Level 5) -->
+                <div v-if="currentNode.level === 5" style="margin-top: 20px">
+                    <h4>{{ isPhreaticNode ? '剖面分析' : '趋势分析' }}</h4>
+                    <el-tabs v-if="!isPhreaticNode" v-model="activeTab" @tab-click="loadChart">
+                        <el-tab-pane label="时间序列" name="timeseries"></el-tab-pane>
+                        <el-tab-pane label="统计分布" name="statistics"></el-tab-pane>
+                        <el-tab-pane label="异常统计" name="anomaly"></el-tab-pane>
+                    </el-tabs>
+                    <div id="sidebar-chart" class="chart-box" v-loading="chartLoading"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted, reactive } = Vue;
+        const { Close } = ElementPlusIconsVue;
+
+        const app = createApp({
+            components: { Close },
+            setup() {
+                const searchKeyword = ref('');
+                const currentNode = ref(null);
+                const nodeDetail = ref(null);
+                const activeTab = ref('timeseries');
+                const isPhreaticNode = Vue.computed(() => {
+                    return currentNode.value && currentNode.value.attributes && currentNode.value.attributes.code === 'PHREATIC_CURVE';
+                });
+                const chartLoading = ref(false);
+                let myChart = null;
+                let sidebarChart = null;
+                let graphData = { nodes: [], edges: [] };
+
+                // 颜色配置
+                const CATEGORY_COLORS = {
+                    'dam': '#5470c6',
+                    'section': '#91cc75',
+                    'sensor_type': '#fac858',
+                    'sensor': '#ee6666',
+                    'element': '#73c0de'
+                };
+
+                const LEVEL_SIZES = {
+                    1: 50,
+                    2: 40,
+                    3: 30,
+                    4: 20,
+                    5: 10
+                };
+
+                const getStatusText = (status) => {
+                    const map = { 0: '正常', 1: '异常', 2: '已修复' };
+                    return map[status] || '未知';
+                };
+
+                // 初始化图谱
+                const initGraph = async () => {
+                    myChart = echarts.init(document.getElementById('graph-container'));
+                    myChart.showLoading();
+
+                    try {
+                        const res = await axios.post('/api/kg/structure', {});
+                        const data = res.data;
+                        graphData = data;
+
+                        // 处理数据适配 ECharts
+                        const nodes = data.nodes.map(node => ({
+                            id: node.id,
+                            name: node.label, // ECharts uses name for label
+                            value: node.value,
+                            symbolSize: LEVEL_SIZES[node.level] || 10,
+                            itemStyle: {
+                                color: node.status === 1 ? '#F56C6C' : CATEGORY_COLORS[node.category]
+                            },
+                            category: node.level - 1, // mapping to legend
+                            original: node
+                        }));
+
+                        const edges = data.edges.map(edge => ({
+                            source: edge.source,
+                            target: edge.target
+                        }));
+
+                        const categories = [
+                            { name: '大坝' }, { name: '坝段' }, { name: '传感器类型' }, { name: '传感器' }, { name: '监测要素' }
+                        ];
+
+                        const option = {
+                            tooltip: {
+                                formatter: '{b}'
+                            },
+                            legend: [{
+                                data: categories.map(a => a.name)
+                            }],
+                            series: [{
+                                type: 'graph',
+                                layout: 'force',
+                                data: nodes,
+                                links: edges,
+                                categories: categories,
+                                roam: true,
+                                label: {
+                                    show: true,
+                                    position: 'right',
+                                    formatter: '{b}'
+                                },
+                                force: {
+                                    repulsion: 100,
+                                    edgeLength: 50
+                                },
+                                lineStyle: {
+                                    color: 'source',
+                                    curveness: 0.3
+                                },
+                                emphasis: {
+                                    focus: 'adjacency',
+                                    lineStyle: {
+                                        width: 10
+                                    }
+                                }
+                            }]
+                        };
+
+                        myChart.setOption(option);
+                        myChart.hideLoading();
+
+                        // 绑定点击事件
+                        myChart.on('click', (params) => {
+                            if (params.dataType === 'node') {
+                                handleNodeClick(params.data);
+                            }
+                        });
+
+                    } catch (error) {
+                        console.error(error);
+                        ElementPlus.ElMessage.error('加载图谱失败');
+                        myChart.hideLoading();
+                    }
+                };
+
+                // 节点点击处理
+                const handleNodeClick = async (nodeData) => {
+                    currentNode.value = nodeData.original;
+                    nodeDetail.value = null;
+
+                    // 获取详情
+                    try {
+                        const res = await axios.post('/api/kg/node/detail', { node_id: nodeData.id });
+                        nodeDetail.value = res.data;
+
+                        // 如果是 Level 5，加载图表
+                        if (currentNode.value.level === 5) {
+                            setTimeout(() => loadChart(), 100); // Wait for DOM
+                        }
+                    } catch (e) {
+                        console.error(e);
+                    }
+                };
+
+                // 聚焦节点
+                const focusNode = (nodeId) => {
+                    const node = graphData.nodes.find(n => n.id === nodeId);
+                    if (node) {
+                        // 1. 仅高亮，暂不打开侧边栏 (用户要求)
+                        // handleNodeClick({ id: node.id, original: node });
+
+                        // 2. 高亮节点 (ECharts 5 使用 highlight 触发 emphasis 状态)
+                        // 先取消之前的高亮
+                        myChart.dispatchAction({
+                            type: 'downplay',
+                            seriesIndex: 0
+                        });
+
+                        // 再高亮当前节点
+                        myChart.dispatchAction({
+                            type: 'highlight',
+                            seriesIndex: 0,
+                            dataIndex: graphData.nodes.findIndex(n => n.id === nodeId)
+                        });
+
+                        // 3. 提示
+                        ElementPlus.ElMessage.success(`已定位到: ${node.label}`);
+                    }
+                };
+
+                // 加载侧边栏图表
+                const loadChart = async () => {
+                    if (!currentNode.value) return;
+
+                    const chartDom = document.getElementById('sidebar-chart');
+                    if (!chartDom) return;
+
+                    if (sidebarChart) sidebarChart.dispose();
+                    sidebarChart = echarts.init(chartDom);
+
+                    chartLoading.value = true;
+                    try {
+                        const res = await axios.post('/api/kg/node/chart', {
+                            node_id: currentNode.value.id,
+                            chart_type: activeTab.value,
+                            days: 30
+                        });
+                        const serverRes = res.data;
+                        const data = serverRes.data;
+                        const returnedChartType = serverRes.chart_type;
+
+                        let option = {};
+
+                        // 1. 特殊处理：浸润线剖面图 (X-Y)
+                        if (returnedChartType === 'phreatic_profile') {
+                            option = {
+                                title: {
+                                    text: (data.section_name || '') + ' 实时浸润线剖面',
+                                    left: 'center',
+                                    textStyle: { fontSize: 12, color: '#666' }
+                                },
+                                tooltip: {
+                                    trigger: 'axis',
+                                    formatter: (params) => {
+                                        let html = `距离: ${params[0].value[0]}m<br/>`;
+                                        params.forEach(p => {
+                                            html += `${p.marker} ${p.seriesName}: ${p.value[1]}m<br/>`;
+                                        });
+                                        return html;
+                                    }
+                                },
+                                grid: { top: 40, bottom: 40, left: 50, right: 30 },
+                                xAxis: {
+                                    type: 'value',
+                                    name: '距离',
+                                    scale: true,
+                                    splitLine: { show: true, lineStyle: { type: 'dashed' } }
+                                },
+                                yAxis: {
+                                    type: 'value',
+                                    name: '水位',
+                                    scale: true,
+                                    splitLine: { show: true }
+                                },
+                                series: data.series.map(s => ({
+                                    ...s,
+                                    symbolSize: s.type === 'scatter' ? 8 : 4
+                                }))
+                            };
+                        }
+                        // 2. 标准时间序列
+                        else if (activeTab.value === 'timeseries') {
+                            option = {
+                                tooltip: { trigger: 'axis' },
+                                grid: { top: 30, bottom: 30, left: 50, right: 20 },
+                                xAxis: { type: 'category', data: data.timestamps },
+                                yAxis: { type: 'value', name: data.unit, scale: true },
+                                series: [{
+                                    name: currentNode.value.label,
+                                    data: data.values,
+                                    type: 'line',
+                                    smooth: true,
+                                    areaStyle: {
+                                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                            { offset: 0, color: 'rgba(58,77,233,0.3)' },
+                                            { offset: 1, color: 'rgba(58,77,233,0)' }
+                                        ])
+                                    }
+                                }]
+                            };
+                        }
+                        // 3. 统计分布
+                        else if (activeTab.value === 'statistics') {
+                            option = {
+                                tooltip: { trigger: 'item' },
+                                grid: { top: 30, bottom: 30, left: 50, right: 20 },
+                                xAxis: { type: 'category', data: ['最小', '最大', '均值'] },
+                                yAxis: { type: 'value' },
+                                series: [{
+                                    data: [
+                                        { value: data.min_val, itemStyle: { color: '#91cc75' } },
+                                        { value: data.max_val, itemStyle: { color: '#ee6666' } },
+                                        { value: data.avg_val, itemStyle: { color: '#5470c6' } }
+                                    ],
+                                    type: 'bar',
+                                    barWidth: '40%',
+                                    label: {
+                                        show: true,
+                                        position: 'top',
+                                        formatter: (params) => params.value ? params.value.toFixed(2) : ''
+                                    }
+                                }]
+                            };
+                        }
+                        // 4. 异常统计
+                        else if (activeTab.value === 'anomaly') {
+                            option = {
+                                tooltip: { trigger: 'item' },
+                                legend: { bottom: 0, left: 'center' },
+                                series: [{
+                                    name: '状态分布',
+                                    type: 'pie',
+                                    radius: ['40%', '70%'],
+                                    avoidLabelOverlap: false,
+                                    itemStyle: { borderRadius: 10, borderColor: '#fff', borderWidth: 2 },
+                                    label: { show: false, position: 'center' },
+                                    emphasis: { label: { show: true, fontSize: 16, fontWeight: 'bold' } },
+                                    labelLine: { show: false },
+                                    data: data.categories.map((c, i) => ({
+                                        value: data.values[i],
+                                        name: c,
+                                        itemStyle: { color: i === 0 ? '#67C23A' : (i === 1 ? '#F56C6C' : '#E6A23C') }
+                                    }))
+                                }]
+                            };
+                        }
+
+                        sidebarChart.setOption(option);
+                    } catch (e) {
+                        console.error(e);
+                        chartDom.innerHTML = '<div style="color:#999;text-align:center;padding-top:100px;">暂无图表数据</div>';
+                    } finally {
+                        chartLoading.value = false;
+                    }
+                };
+
+                // 搜索建议
+                const querySearch = async (queryString, cb) => {
+                    if (!queryString) {
+                        cb([]);
+                        return;
+                    }
+                    try {
+                        const res = await axios.post('/api/kg/search', { keyword: queryString });
+                        cb(res.data.map(n => ({ value: n.label, label: n.label, id: n.id, category: n.category, category_name: n.category_name })));
+                    } catch (e) {
+                        cb([]);
+                    }
+                };
+
+                const handleSelect = (item) => {
+                    focusNode(item.id);
+                };
+
+                const resetView = () => {
+                    // 恢复初始状态
+                    if (!graphData.nodes.length) return;
+
+                    const restoreNodes = graphData.nodes.map(n => ({
+                        id: n.id,
+                        name: n.label,
+                        value: n.value,
+                        symbolSize: LEVEL_SIZES[n.level] || 10,
+                        itemStyle: {
+                            color: n.status === 1 ? '#F56C6C' : CATEGORY_COLORS[n.category],
+                            opacity: 1
+                        },
+                        label: { show: true },
+                        category: n.level - 1,
+                        original: n
+                    }));
+
+                    const restoreEdges = graphData.edges.map(e => ({
+                        source: e.source,
+                        target: e.target,
+                        lineStyle: { opacity: 1, width: 1 }
+                    }));
+
+                    myChart.setOption({
+                        series: [{
+                            data: restoreNodes,
+                            links: restoreEdges,
+                            emphasis: {
+                                disabled: false, // 恢复悬停交互
+                                focus: 'adjacency'
+                            }
+                        }]
+                    });
+
+                    ElementPlus.ElMessage.info('视图已重置');
+                };
+
+                onMounted(() => {
+                    initGraph();
+                    window.addEventListener('resize', () => {
+                        myChart && myChart.resize();
+                        sidebarChart && sidebarChart.resize();
+                    });
+                });
+
+                return {
+                    searchKeyword,
+                    currentNode,
+                    nodeDetail,
+                    activeTab,
+                    chartLoading,
+                    getStatusText,
+                    querySearch,
+                    handleSelect,
+                    handleNodeClick,
+                    loadChart,
+                    focusNode,
+                    resetView,
+                    isPhreaticNode
+                };
+            }
+        });
+
+        app.use(ElementPlus);
+        for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+            app.component(key, component)
+        }
+        app.mount('#app');
+    </script>
+</body>
+
+</html>

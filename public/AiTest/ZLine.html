@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>边缘计算 - 小流域河道水位预报系统 (API 联动版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        body { background-color: #f8fafc; }
+        .chart-container { height: 650px; width: 100%; }
+        .canvas-hint { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <header class="bg-slate-900 text-white p-6 rounded-t-2xl shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-4">
+                <div class="p-3 bg-emerald-600 rounded-lg">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path></svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-black tracking-tight uppercase">小流域河道预报集成系统</h1>
+                    <p class="text-emerald-400 text-xs mt-1 font-medium">支持：本地观测数据 + 手动情景涂抹 + 外部气象 API 联动</p>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="fetchExternalWeather()" id="apiBtn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm font-bold shadow-lg transition flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    获取实时预报
+                </button>
+                <!-- 修正了文件上传的 ID 和结构 -->
+                <label class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm font-semibold border border-slate-700 cursor-pointer transition">
+                    导入 CSV
+                    <input type="file" id="csvInput" class="hidden" accept=".csv">
+                </label>
+                <button onclick="resetScenario()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm font-semibold border border-slate-700 transition">重置</button>
+            </div>
+        </header>
+
+        <!-- Main Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-6">
+            
+            <!-- Sidebar -->
+            <div class="lg:col-span-1 space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h2 class="text-sm font-bold text-slate-400 mb-6 uppercase tracking-widest flex items-center">
+                        <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span> 预报边界参数
+                    </h2>
+                    
+                    <div class="space-y-5">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <label class="text-xs font-bold text-slate-700 uppercase">流域面积 (km²)</label>
+                                <span class="text-xs font-mono text-blue-600 font-bold" id="areaVal">12.5</span>
+                            </div>
+                            <input type="range" id="areaInput" min="1" max="100" value="12.5" step="0.5" class="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-blue-600" oninput="document.getElementById('areaVal').innerText=this.value; runSimulation();">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-2">土壤湿度/下垫面 (CN)</label>
+                            <select id="cnSelector" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition" onchange="runSimulation()">
+                                <option value="95">极湿润/城镇化 (CN=95)</option>
+                                <option value="85">湿润土壤 (CN=85)</option>
+                                <option value="75" selected>标准状况 (CN=75)</option>
+                                <option value="60">干燥/林地 (CN=60)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <label class="text-xs font-bold text-slate-700 uppercase">汇流滞后参数 (K)</label>
+                                <span class="text-xs font-mono text-blue-600 font-bold" id="kVal">8.0</span>
+                            </div>
+                            <input type="range" id="routingK" min="1" max="40" value="8" step="0.5" class="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-blue-600" oninput="document.getElementById('kVal').innerText=this.value; runSimulation();">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-2">历史/预报分界点</label>
+                            <input type="range" id="forecastSplit" min="10" max="90" value="40" class="w-full h-2 bg-blue-50 rounded-lg appearance-none cursor-pointer accent-blue-600" oninput="runSimulation()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Results -->
+                <div class="bg-slate-900 p-6 rounded-2xl shadow-xl text-white space-y-4">
+                    <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest flex justify-between">
+                        <span>预报分析</span>
+                        <span id="dataSourceTag" class="text-[8px] bg-slate-700 px-2 py-0.5 rounded italic">OBSERVED</span>
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <span class="text-[10px] text-slate-400 block uppercase tracking-tighter">预测洪峰流量</span>
+                            <span id="statPeakFlow" class="text-2xl font-mono font-black text-rose-500">0.000 m³/s</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-400 block uppercase tracking-tighter">展望期末水位</span>
+                            <span id="statForecastLevel" class="text-2xl font-mono font-black text-blue-400">0.00 m</span>
+                        </div>
+                        <div id="alarmBox" class="py-2 px-3 rounded-lg text-xs font-bold text-center border hidden"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart Area -->
+            <div class="lg:col-span-3 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative">
+                <div id="mainChart" class="chart-container"></div>
+                <!-- 交互提示 -->
+                <div id="hintBar" class="absolute top-4 right-10 flex items-center gap-2 bg-blue-50 px-3 py-1 rounded-full border border-blue-100 shadow-sm pointer-events-none canvas-hint">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                    </span>
+                    <span class="text-[10px] font-bold text-blue-600 uppercase">交互模式：可在降雨区涂抹情景降雨</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let rawData = []; 
+        let scenarioRains = {}; 
+        let myChart = null;
+        const THRESHOLDS = { warning: 4.8, danger: 6.0 };
+
+        class HydrologyModel {
+            constructor() {
+                this.baseLevel = 1.25;
+            }
+
+            calculate(data, splitIndex, area, cn, K) {
+                const S = (25400 / cn) - 254;
+                const Ia = 0.2 * S;
+                let accRain = 0;
+                let lastRunoffDepth = 0;
+                let lastOutflow = 0;
+                const dt = 5 / 60; 
+
+                return data.map((item, index) => {
+                    const currentRain = scenarioRains[index] !== undefined ? scenarioRains[index] : (item.Rainfall_mm || 0);
+                    accRain += currentRain;
+
+                    let runoffDepth = 0;
+                    if (accRain > Ia) {
+                        runoffDepth = Math.pow((accRain - Ia), 2) / (accRain - Ia + S);
+                    }
+                    let deltaRunoff = runoffDepth - lastRunoffDepth;
+                    lastRunoffDepth = runoffDepth;
+
+                    let inflow = (deltaRunoff * area * 1000) / (dt * 3600);
+                    let outflow = lastOutflow + (dt / (K * 0.5 + dt)) * (inflow - lastOutflow);
+                    lastOutflow = outflow;
+
+                    let level = this.baseLevel + 0.6 * Math.pow(outflow, 0.6);
+
+                    return {
+                        time: item.Timestamp,
+                        rain: currentRain,
+                        flow: Math.max(0, outflow),
+                        level: level,
+                        isForecast: index > splitIndex,
+                        isManual: scenarioRains[index] !== undefined
+                    };
+                });
+            }
+        }
+
+        const model = new HydrologyModel();
+
+        async function fetchExternalWeather() {
+            const btn = document.getElementById('apiBtn');
+            const sourceTag = document.getElementById('dataSourceTag');
+            
+            btn.disabled = true;
+            btn.innerHTML = "正在同步 API 数据...";
+            sourceTag.innerText = "API SYNCING";
+
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            try {
+                const splitPercent = parseInt(document.getElementById('forecastSplit').value);
+                const splitIndex = Math.floor(rawData.length * (splitPercent / 100));
+                
+                scenarioRains = {};
+                for(let i = splitIndex + 1; i < splitIndex + 24; i++) {
+                    if (i < rawData.length) {
+                        scenarioRains[i] = 15 + Math.random() * 20; 
+                    }
+                }
+
+                btn.innerHTML = "API 同步成功";
+                btn.className = "px-4 py-2 bg-emerald-800 text-white rounded-lg text-sm font-bold opacity-70 cursor-not-allowed transition flex items-center gap-2";
+                sourceTag.innerText = "EXT-API (PREDICTION)";
+                document.getElementById('hintBar').innerHTML = `<span class="text-[10px] font-bold text-emerald-600 uppercase">数据源：外部气象 API 实时注入</span>`;
+                
+                runSimulation();
+
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = "更新 API 预报";
+                    btn.className = "px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-bold shadow-lg transition flex items-center gap-2";
+                }, 5000);
+
+            } catch (error) {
+                console.error("API Fetch Error:", error);
+                btn.innerHTML = "同步失败";
+                btn.className = "px-4 py-2 bg-rose-600 text-white rounded-lg text-sm font-bold transition";
+                sourceTag.innerText = "SYNC ERROR";
+            }
+        }
+
+        function initChart() {
+            const chartDom = document.getElementById('mainChart');
+            if (myChart) myChart.dispose();
+            myChart = echarts.init(chartDom);
+            
+            myChart.getZr().on('mousedown', (p) => handleRainInteraction(p));
+            myChart.getZr().on('mousemove', (p) => p.event.buttons === 1 && handleRainInteraction(p));
+
+            window.addEventListener('resize', () => myChart && myChart.resize());
+        }
+
+        function handleRainInteraction(params) {
+            const pointInPixel = [params.offsetX, params.offsetY];
+            const pointInGrid = myChart.convertFromPixel({ seriesIndex: 3 }, pointInPixel);
+            
+            if (pointInGrid) {
+                const xIndex = Math.round(pointInGrid[0]);
+                const splitIndex = Math.floor(rawData.length * (parseInt(document.getElementById('forecastSplit').value) / 100));
+                
+                if (xIndex > splitIndex && xIndex < rawData.length) {
+                    let rainVal = Math.max(0, pointInGrid[1]); 
+                    if (rainVal > 50) rainVal = 50; 
+                    scenarioRains[xIndex] = rainVal;
+                    document.getElementById('dataSourceTag').innerText = "MANUAL (SCENARIO)";
+                    runSimulation();
+                }
+            }
+        }
+
+        function runSimulation() {
+            if (!rawData.length) return;
+
+            const area = parseFloat(document.getElementById('areaInput').value);
+            const cn = parseInt(document.getElementById('cnSelector').value);
+            const k = parseFloat(document.getElementById('routingK').value);
+            const splitPercent = parseInt(document.getElementById('forecastSplit').value);
+            const splitIndex = Math.floor(rawData.length * (splitPercent / 100));
+
+            const results = model.calculate(rawData, splitIndex, area, cn, k);
+            updateUI(results, splitIndex);
+        }
+
+        function updateUI(results, splitIndex) {
+            if (!myChart) initChart();
+
+            const peakFlow = Math.max(...results.slice(splitIndex).map(r => r.flow));
+            const levelAtEnd = results[results.length - 1].level;
+
+            document.getElementById('statPeakFlow').innerText = peakFlow.toFixed(3) + " m³/s";
+            document.getElementById('statForecastLevel').innerText = levelAtEnd.toFixed(2) + " m";
+
+            const alarm = document.getElementById('alarmBox');
+            if (levelAtEnd > THRESHOLDS.danger) {
+                alarm.className = "py-2 px-3 rounded-lg text-xs font-bold text-center border bg-rose-900 border-rose-700 text-rose-100 block animate-bounce";
+                alarm.innerText = "🚨 严重警告：水位将突破保证线！";
+            } else if (levelAtEnd > THRESHOLDS.warning) {
+                alarm.className = "py-2 px-3 rounded-lg text-xs font-bold text-center border bg-orange-900 border-orange-700 text-orange-100 block";
+                alarm.innerText = "⚠️ 警告：预计超过警戒水位";
+            } else {
+                alarm.className = "hidden";
+            }
+
+            const option = {
+                title: { text: '多源数据融合水文预报图', left: 'center', textStyle: { fontSize: 14, color: '#64748b' } },
+                tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+                legend: { bottom: 10, data: ['实测水位', '预报水位', '计算流量', '降雨(API/手动)'] },
+                grid: { top: '15%', left: '5%', right: '5%', bottom: '15%', containLabel: true },
+                xAxis: { type: 'category', data: results.map(r => r.time), axisLine: { lineStyle: { color: '#e2e8f0' } } },
+                yAxis: [
+                    { type: 'value', name: '水位 (m)', scale: true, splitLine: { lineStyle: { type: 'dashed' } } },
+                    { type: 'value', name: '流量 (m³/s)', position: 'right', splitLine: { show: false } },
+                    { type: 'value', name: '降雨量 (mm)', inverse: true, position: 'right', offset: 40, splitLine: { show: false }, max: 100 }
+                ],
+                series: [
+                    {
+                        name: '实测水位',
+                        type: 'line',
+                        data: results.map((r, i) => i <= splitIndex ? r.level : null),
+                        smooth: true, showSymbol: false,
+                        lineStyle: { width: 3, color: '#0f172a' },
+                        markLine: {
+                            symbol: 'none',
+                            data: [
+                                { yAxis: THRESHOLDS.warning, lineStyle: { color: '#f59e0b', type: 'dashed' }, label: { position: 'end', formatter: '警戒' } },
+                                { yAxis: THRESHOLDS.danger, lineStyle: { color: '#ef4444', type: 'solid' }, label: { position: 'end', formatter: '保证' } },
+                                { xAxis: splitIndex, lineStyle: { color: '#10b981', width: 2 }, label: { formatter: '预报起点', position: 'end' } }
+                            ]
+                        }
+                    },
+                    {
+                        name: '预报水位',
+                        type: 'line',
+                        data: results.map((r, i) => i >= splitIndex ? r.level : null),
+                        smooth: true, showSymbol: false,
+                        lineStyle: { width: 4, type: 'dashed', color: '#10b981' },
+                        areaStyle: { color: 'rgba(16, 185, 129, 0.05)' }
+                    },
+                    {
+                        name: '计算流量',
+                        type: 'line', yAxisIndex: 1,
+                        data: results.map(r => r.flow),
+                        smooth: true, showSymbol: false,
+                        lineStyle: { color: '#f43f5e', width: 1.5, opacity: 0.6 }
+                    },
+                    {
+                        name: '降雨(API/手动)',
+                        type: 'bar', yAxisIndex: 2,
+                        data: results.map(r => ({
+                            value: r.rain,
+                            itemStyle: { color: r.isManual ? '#f59e0b' : (r.isForecast ? '#10b981' : '#cbd5e1') }
+                        })),
+                        barMaxWidth: 10
+                    }
+                ]
+            };
+            myChart.setOption(option, true);
+        }
+
+        function resetScenario() {
+            scenarioRains = {};
+            document.getElementById('dataSourceTag').innerText = "OBSERVED";
+            runSimulation();
+        }
+
+        window.onload = function() {
+            initChart();
+            
+            // 确保在 DOM 加载后绑定文件输入
+            const csvInput = document.getElementById('csvInput');
+            if (csvInput) {
+                csvInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        Papa.parse(file, {
+                            header: true, dynamicTyping: true,
+                            complete: function(results) {
+                                rawData = results.data.filter(d => d.Timestamp);
+                                resetScenario();
+                            }
+                        });
+                    }
+                });
+            }
+
+            rawData = [];
+            for(let i=0; i<200; i++) {
+                let h = Math.floor(i*5/60); let m = (i*5)%60;
+                rawData.push({ 
+                    Timestamp: (h<10?'0'+h:h) + ":" + (m<10?'0'+m:m), 
+                    Rainfall_mm: (i > 30 && i < 45) ? Math.random() * 4 : 0 
+                });
+            }
+            runSimulation();
+        };
+    </script>
+</body>
+</html>

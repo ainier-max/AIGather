@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多断面大坝监测可视化系统</title>
+    <!-- 引入 SheetJS 用于 Excel 导出 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --theory-color: #f59e0b;
+            --bg-color: #f1f5f9;
+            --panel-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --water-color: rgba(29, 78, 216, 0.7);
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --drain-color: #94a3b8;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            background-color: var(--bg-color);
+            font-family: -apple-system, system-ui, sans-serif;
+            overflow: hidden;
+        }
+
+        /* Sidebar Layout */
+        .sidebar {
+            width: 380px;
+            background: var(--panel-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+            z-index: 10;
+        }
+
+        .global-params {
+            padding: 15px 20px;
+            background: #f8fafc;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .sidebar-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 14px;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+        }
+
+        h3 {
+            margin: 15px 0 8px 0;
+            font-size: 12px;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 4px;
+        }
+
+        .section-manager {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        select {
+            flex: 1;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            font-size: 13px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            margin-bottom: 8px;
+        }
+
+        .input-group label {
+            font-size: 11px;
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        input[type="number"],
+        input[type="text"],
+        select {
+            padding: 6px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 13px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .sensor-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            margin-top: 5px;
+        }
+
+        .sensor-table th {
+            text-align: left;
+            color: var(--secondary-color);
+            padding: 6px 4px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sensor-table td {
+            padding: 2px 0;
+        }
+
+        .sensor-table input {
+            padding: 4px;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid transparent;
+        }
+
+        .btn-delete {
+            color: #ef4444;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 16px;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .btn-export {
+            background: #0ea5e9;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .btn-add {
+            background: #f8fafc;
+            border: 1px dashed var(--secondary-color);
+            color: var(--secondary-color);
+            padding: 6px;
+            margin-top: 5px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 11px;
+            width: 100%;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background: #cbd5e1;
+        }
+
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: #cbd5e1;
+        }
+
+        canvas {
+            display: block;
+            cursor: crosshair;
+        }
+
+        /* Bottom Panel */
+        .bottom-diagnosis-bar {
+            height: 140px;
+            background: var(--panel-bg);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: stretch;
+            padding: 15px 25px;
+            gap: 30px;
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.05);
+            z-index: 5;
+        }
+
+        .diag-section {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-width: 180px;
+        }
+
+        .diag-section-title {
+            font-size: 12px;
+            color: var(--secondary-color);
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        .diag-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--primary-color);
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+        }
+
+        .diag-unit {
+            font-size: 12px;
+            font-weight: normal;
+            color: #94a3b8;
+        }
+
+        .diag-status {
+            font-size: 12px;
+            margin-top: 4px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            display: inline-block;
+            width: fit-content;
+        }
+
+        .status-ok {
+            background: #ecfdf5;
+            color: #059669;
+        }
+
+        .status-warn {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        .legend {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        .line {
+            width: 20px;
+            height: 2px;
+        }
+
+        #tooltip {
+            position: absolute;
+            display: none;
+            background: rgba(15, 23, 42, 0.95);
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 100;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="tooltip"></div>
+
+    <div class="sidebar">
+        <div class="global-params">
+            <div class="toolbar">
+                <h2>全局坝体参数配置</h2>
+                <button class="btn-export" onclick="exportToExcel()">Excel 导出配置</button>
+            </div>
+            <div class="row">
+                <div class="input-group">
+                    <label>全局库水位 (m)</label>
+                    <input type="number" id="globalReservoirLevel" value="45.0" step="0.1"
+                        oninput="syncGlobalAndDraw()">
+                </div>
+                <div class="input-group">
+                    <label>坝顶高程 (m)</label>
+                    <input type="number" id="globalTopElev" value="50" oninput="syncGlobalAndDraw()">
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-group">
+                    <label>坝底高程 (m)</label>
+                    <input type="number" id="globalBottomElev" value="10" oninput="syncGlobalAndDraw()">
+                </div>
+                <div class="input-group">
+                    <label>坝顶宽度 (m)</label>
+                    <input type="number" id="globalTopWidth" value="8" oninput="syncGlobalAndDraw()">
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-group">
+                    <label>上游坡比 (1:m1)</label>
+                    <input type="number" id="globalM1" step="0.1" value="2.5" oninput="syncGlobalAndDraw()">
+                </div>
+                <div class="input-group">
+                    <label>下游坡比 (1:m2)</label>
+                    <input type="number" id="globalM2" step="0.1" value="2.2" oninput="syncGlobalAndDraw()">
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-group">
+                    <label>台阶垂直间距 (m)</label>
+                    <input type="number" id="globalStepHeight" step="1" value="2" placeholder="0:不启用"
+                        oninput="syncGlobalAndDraw()">
+                </div>
+                <div class="input-group">
+                    <label>台阶/马道宽度 (m)</label>
+                    <input type="number" id="globalStepWidth" step="0.5" value="2" oninput="syncGlobalAndDraw()">
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-group">
+                    <label>坝体材质类型</label>
+                    <select id="damMaterial" onchange="syncGlobalAndDraw()">
+                        <option value="earth" selected>土石坝 (含防渗心墙)</option>
+                        <option value="clay">粘土均质坝</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>渗透系数 k (m/s)</label>
+                    <input type="number" id="globalK" value="1.0e-7" step="1e-9" oninput="syncGlobalAndDraw()">
+                </div>
+            </div>
+
+            <div id="coreWallInputs">
+                <h3>防渗心墙物理参数</h3>
+                <div class="row">
+                    <div class="input-group">
+                        <label>心墙顶高 (m)</label>
+                        <input type="number" id="coreTopElev" value="48" oninput="syncGlobalAndDraw()">
+                    </div>
+                    <div class="input-group">
+                        <label>心墙顶宽 (m)</label>
+                        <input type="number" id="coreTopWidth" value="4" oninput="syncGlobalAndDraw()">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>心墙底宽 (m)</label>
+                    <input type="number" id="coreBottomWidth" value="12" oninput="syncGlobalAndDraw()">
+                </div>
+            </div>
+
+            <div id="drainageInputs">
+                <h3>下游排水棱体配置</h3>
+                <div class="row">
+                    <div class="input-group">
+                        <label>棱体顶高程 (m)</label>
+                        <input type="number" id="drainTopElev" value="18" oninput="syncGlobalAndDraw()">
+                    </div>
+                    <div class="input-group">
+                        <label>棱体顶宽度 (m)</label>
+                        <input type="number" id="drainTopWidth" value="4" oninput="syncGlobalAndDraw()">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>反滤/外坡比 (1:m_d)</label>
+                    <input type="number" id="drainSlope" value="1.5" step="0.1" oninput="syncGlobalAndDraw()">
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-content">
+            <div>
+                <h2>断面切换与局部配置</h2>
+                <div class="section-manager">
+                    <select id="sectionSelect" onchange="switchSection()"></select>
+                    <button class="btn-primary" onclick="addSection()">+ 增加</button>
+                </div>
+                <div class="input-group">
+                    <label>当前断面水位 (留空继承全局)</label>
+                    <input type="number" id="sectionReservoirLevel" placeholder="继承全局" oninput="syncSectionData()">
+                </div>
+            </div>
+
+            <div>
+                <h2>实测测管数据 (当前: <span id="displaySectionName">断面 01</span>)</h2>
+                <table class="sensor-table">
+                    <thead>
+                        <tr>
+                            <th width="20%">编号</th>
+                            <th width="25%">轴距X</th>
+                            <th width="25%">底高</th>
+                            <th width="25%">水位</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="sensorList"></tbody>
+                </table>
+                <button class="btn-add" onclick="addSensor()">+ 添加传感器</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="canvas-container" id="canvasContainer">
+            <canvas id="damCanvas"></canvas>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="line" style="background: #06b6d4; height:3px; border-bottom: 2px dashed white;"></div>
+                    实测浸润线
+                </div>
+                <div class="legend-item">
+                    <div class="line" style="background: #f59e0b; height:3px;"></div> 理论浸润线
+                </div>
+                <div class="legend-item">
+                    <div class="dot" style="background: rgba(96, 165, 250, 0.2); border: 1px solid #60a5fa;"></div>
+                    坝体浸润区
+                </div>
+                <div class="legend-item" id="coreLegend">
+                    <div class="dot" style="background: #94a3b8; opacity: 0.3"></div> 防渗心墙
+                </div>
+                <div class="legend-item">
+                    <div class="dot" style="background: #64748b;"></div> 排水棱体
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-diagnosis-bar">
+            <div class="diag-section">
+                <div class="diag-section-title">平均渗透坡降 (J)</div>
+                <div class="diag-value" id="diagGradient">0.0000 <span class="diag-unit">i</span></div>
+                <div class="diag-status" id="diagGradientStatus">正常运行</div>
+            </div>
+            <div class="diag-section">
+                <div class="diag-section-title">下游出逸点高程</div>
+                <div class="diag-value" id="diagExitElev">0.00 <span class="diag-unit">m</span></div>
+                <div class="diag-status status-ok">棱体排泄</div>
+            </div>
+            <div class="diag-section">
+                <div class="diag-section-title">浸润线最高点高程</div>
+                <div class="diag-value" id="diagMaxElev">0.00 <span class="diag-unit">m</span></div>
+                <div class="diag-status status-ok" id="diagMaxPos">位置: 库水位点</div>
+            </div>
+            <div class="diag-section" style="border-left: 1px solid #e2e8f0; padding-left: 30px; flex: 1;">
+                <div class="diag-section-title">渗透诊断结论</div>
+                <div id="diagText" style="font-size: 13px; color: #475569; margin-top: 5px; line-height: 1.5;">
+                    当前断面渗透稳定。
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let globalConfig = {
+            reservoirLevel: 45.0, topElev: 50, bottomElev: 10, topWidth: 8, m1: 2.5, m2: 2.2,
+            coreTopElev: 48, coreTopWidth: 4, coreBottomWidth: 12,
+            damMaterial: 'earth', permeabilityK: 1.0e-7,
+            drainTopElev: 18, drainTopWidth: 4, drainSlope: 1.5,
+            stepHeight: 10, stepWidth: 2
+        };
+
+        let sections = [{
+            id: 1, name: "断面 01", localLevel: null,
+            sensors: [
+                { id: 'P1', x: 10, bottom: 20, water: 40 },
+                { id: 'P2', x: 20, bottom: 20, water: 35 },
+                { id: 'P3', x: 35, bottom: 20, water: 30 },
+                { id: 'P4', x: 50, bottom: 20, water: 25 }
+            ]
+        }];
+
+        let currentSectionId = sections[0].id;
+        let transform = { x: 0, y: 0, scale: 1 };
+        let isDragging = false;
+        let lastMousePos = { x: 0, y: 0 };
+        let hoveredSensor = null;
+
+        const canvas = document.getElementById('damCanvas');
+        const ctx = canvas.getContext('2d');
+        const tooltip = document.getElementById('tooltip');
+
+        function init() {
+            renderSectionSelect();
+            loadCurrentSection();
+            setupEvents();
+            resize();
+            resetView();
+            syncGlobalAndDraw();
+        }
+
+        function exportToExcel() {
+            const damParams = [
+                ["参数名称", "数值", "单位"],
+                ["坝顶高程", globalConfig.topElev, "m"],
+                ["坝底高程", globalConfig.bottomElev, "m"],
+                ["坝顶宽度", globalConfig.topWidth, "m"],
+                ["上游坡比 (1:m1)", globalConfig.m1, "-"],
+                ["下游坡比 (1:m2)", globalConfig.m2, "-"],
+                ["材质类型", globalConfig.damMaterial === 'earth' ? "土石坝(含心墙)" : "粘土均质坝", "-"],
+                ["渗透系数 k", globalConfig.permeabilityK, "m/s"],
+                ["心墙顶高程", globalConfig.coreTopElev, "m"],
+                ["心墙顶宽度", globalConfig.coreTopWidth, "m"],
+                ["心墙底宽度", globalConfig.coreBottomWidth, "m"],
+                ["排水棱体顶高程", globalConfig.drainTopElev, "m"],
+                ["排水棱体顶宽度", globalConfig.drainTopWidth, "m"],
+                ["当前全局水位", globalConfig.reservoirLevel, "m"]
+            ];
+
+            const sensorData = [["断面名称", "传感器ID", "轴距X (m)", "底高程 (m)"]];
+            sections.forEach(sec => {
+                sec.sensors.forEach(sen => {
+                    sensorData.push([sec.name, sen.id, sen.x, sen.bottom]);
+                });
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws1 = XLSX.utils.aoa_to_sheet(damParams);
+            const ws2 = XLSX.utils.aoa_to_sheet(sensorData);
+            XLSX.utils.book_append_sheet(wb, ws1, "坝体设计参数");
+            XLSX.utils.book_append_sheet(wb, ws2, "断面传感器配置");
+            XLSX.writeFile(wb, `大坝监测配置导出_${new Date().toLocaleDateString()}.xlsx`);
+        }
+
+        function setupEvents() {
+            const container = document.getElementById('canvasContainer');
+            container.addEventListener('wheel', e => {
+                e.preventDefault();
+                const zoom = Math.pow(1.1, -e.deltaY / 150);
+                const rect = container.getBoundingClientRect();
+                const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+                const wx = (mx - transform.x) / transform.scale;
+                const wy = (my - transform.y) / transform.scale;
+                transform.scale *= zoom;
+                transform.x = mx - wx * transform.scale;
+                transform.y = my - wy * transform.scale;
+                draw();
+            }, { passive: false });
+
+            container.addEventListener('mousedown', e => {
+                isDragging = true;
+                lastMousePos = { x: e.clientX, y: e.clientY };
+            });
+
+            window.addEventListener('mousemove', e => {
+                const rect = canvas.getBoundingClientRect();
+                const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+                if (isDragging) {
+                    transform.x += e.clientX - lastMousePos.x;
+                    transform.y += e.clientY - lastMousePos.y;
+                    lastMousePos = { x: e.clientX, y: e.clientY };
+                    draw();
+                } else {
+                    checkHover(mx, my);
+                }
+            });
+            window.addEventListener('mouseup', () => isDragging = false);
+        }
+
+        function syncGlobalAndDraw() {
+            const gc = globalConfig;
+            gc.reservoirLevel = parseFloat(document.getElementById('globalReservoirLevel').value) || 0;
+            gc.topElev = parseFloat(document.getElementById('globalTopElev').value) || 0;
+            gc.bottomElev = parseFloat(document.getElementById('globalBottomElev').value) || 0;
+            gc.topWidth = parseFloat(document.getElementById('globalTopWidth').value) || 0;
+            gc.m1 = parseFloat(document.getElementById('globalM1').value) || 0;
+            gc.m2 = parseFloat(document.getElementById('globalM2').value) || 0;
+            gc.damMaterial = document.getElementById('damMaterial').value;
+            gc.permeabilityK = parseFloat(document.getElementById('globalK').value) || 1.0e-7;
+
+            gc.coreTopElev = parseFloat(document.getElementById('coreTopElev').value) || 0;
+            gc.coreTopWidth = parseFloat(document.getElementById('coreTopWidth').value) || 0;
+            gc.coreBottomWidth = parseFloat(document.getElementById('coreBottomWidth').value) || 0;
+
+            gc.drainTopElev = parseFloat(document.getElementById('drainTopElev').value) || 0;
+            gc.drainTopWidth = parseFloat(document.getElementById('drainTopWidth').value) || 0;
+            gc.drainSlope = parseFloat(document.getElementById('drainSlope').value) || 0;
+            gc.stepHeight = parseFloat(document.getElementById('globalStepHeight').value) || 0;
+            gc.stepWidth = parseFloat(document.getElementById('globalStepWidth').value) || 0;
+
+            document.getElementById('coreWallInputs').style.display = gc.damMaterial === 'earth' ? 'block' : 'none';
+            document.getElementById('coreLegend').style.display = gc.damMaterial === 'earth' ? 'flex' : 'none';
+            draw();
+        }
+
+        function loadCurrentSection() {
+            const s = sections.find(x => x.id === currentSectionId);
+            document.getElementById('displaySectionName').innerText = s.name;
+            document.getElementById('sectionReservoirLevel').value = s.localLevel || "";
+            renderSensorList(s.sensors);
+        }
+
+        function syncSectionData() {
+            const s = sections.find(x => x.id === currentSectionId);
+            const val = document.getElementById('sectionReservoirLevel').value;
+            s.localLevel = val === "" ? null : parseFloat(val);
+            draw();
+        }
+
+        function renderSectionSelect() {
+            const sel = document.getElementById('sectionSelect');
+            sel.innerHTML = '';
+            sections.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id; opt.textContent = s.name;
+                opt.selected = s.id === currentSectionId;
+                sel.appendChild(opt);
+            });
+        }
+
+        function renderSensorList(sensors) {
+            const tb = document.getElementById('sensorList');
+            tb.innerHTML = '';
+            sensors.forEach((sen, i) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="text" value="${sen.id}" oninput="updateSensor(${i},'id',this.value)"></td>
+                    <td><input type="number" value="${sen.x}" oninput="updateSensor(${i},'x',this.value)"></td>
+                    <td><input type="number" value="${sen.bottom}" oninput="updateSensor(${i},'bottom',this.value)"></td>
+                    <td><input type="number" value="${sen.water}" oninput="updateSensor(${i},'water',this.value)"></td>
+                    <td><button class="btn-delete" onclick="removeSensor(${i})">×</button></td>
+                `;
+                tb.appendChild(tr);
+            });
+        }
+
+        function updateSensor(i, f, v) {
+            const s = sections.find(x => x.id === currentSectionId);
+            s.sensors[i][f] = f === 'id' ? v : parseFloat(v);
+            draw();
+        }
+
+        function addSensor() {
+            const s = sections.find(x => x.id === currentSectionId);
+            s.sensors.push({ id: 'P' + (s.sensors.length + 1), x: 0, bottom: 15, water: 25 });
+            renderSensorList(s.sensors);
+            draw();
+        }
+
+        function removeSensor(i) {
+            const s = sections.find(x => x.id === currentSectionId);
+            s.sensors.splice(i, 1);
+            renderSensorList(s.sensors);
+            draw();
+        }
+
+        function addSection() {
+            const id = Date.now();
+            sections.push({ id, name: "断面 " + (sections.length + 1).toString().padStart(2, '0'), localLevel: null, sensors: [] });
+            currentSectionId = id;
+            renderSectionSelect(); loadCurrentSection(); resetView();
+        }
+
+        function switchSection() {
+            currentSectionId = parseInt(document.getElementById('sectionSelect').value);
+            loadCurrentSection();
+            draw();
+        }
+
+        function toCanvas(wx, wy) {
+            return {
+                x: transform.x + wx * transform.scale,
+                y: transform.y - (wy - globalConfig.bottomElev) * transform.scale
+            };
+        }
+
+        function getDamSurfaceElev(x, g) {
+            const h = g.topElev - g.bottomElev;
+            const tWidthHalf = g.topWidth / 2;
+            const bLX = -tWidthHalf - h * g.m1;
+
+            // Upstream
+            if (x < -tWidthHalf) return (x < bLX) ? g.bottomElev : g.bottomElev + (x - bLX) / g.m1;
+
+            // Top
+            if (x <= tWidthHalf) return g.topElev;
+
+            // Downstream
+            if (g.stepHeight > 0) {
+                // 计算固定棱体位置下的有效坡比
+                const H_slope = g.topElev - g.drainTopElev;
+                const L_total = H_slope * g.m2;
+                const stepCount = Math.floor((H_slope - 0.01) / g.stepHeight);
+                const totalBermWidth = stepCount * g.stepWidth;
+
+                let effectiveM2 = g.m2;
+                if (H_slope > 0) {
+                    effectiveM2 = (L_total - totalBermWidth) / H_slope;
+                    if (effectiveM2 < 0) effectiveM2 = 0;
+                }
+
+                let curX = tWidthHalf, curY = g.topElev;
+                while (curY > g.drainTopElev) {
+                    const drop = Math.min(g.stepHeight, curY - g.drainTopElev);
+                    const run = drop * effectiveM2;
+                    const nextX = curX + run;
+                    const nextY = curY - drop;
+
+                    if (x <= nextX) return curY - (x - curX) / effectiveM2; // On slope
+                    curX = nextX; curY = nextY;
+
+                    if (curY <= g.drainTopElev + 0.01) break;
+
+                    const nextBermX = curX + g.stepWidth;
+                    if (x <= nextBermX) return curY; // On berm
+                    curX = nextBermX;
+                }
+                return g.drainTopElev; // At or beyond drain
+            } else {
+                const bRX = tWidthHalf + h * g.m2;
+                return (x > bRX) ? g.bottomElev : g.bottomElev + (bRX - x) / g.m2;
+            }
+        }
+
+        function checkHover(mx, my) {
+            const s = sections.find(x => x.id === currentSectionId);
+            let found = null;
+            for (const sen of s.sensors) {
+                const bot = toCanvas(sen.x, sen.bottom), wat = toCanvas(sen.x, sen.water);
+                if (Math.abs(mx - bot.x) < 12 && my >= Math.min(bot.y, wat.y) - 5 && my <= Math.max(bot.y, wat.y) + 5) {
+                    found = sen; break;
+                }
+            }
+            if (found !== hoveredSensor) {
+                hoveredSensor = found;
+                if (found) {
+                    canvas.style.cursor = 'pointer';
+                    tooltip.style.display = 'block';
+                    tooltip.innerHTML = `<strong>测压管: ${found.id}</strong><br/>水位: ${found.water.toFixed(2)}m`;
+                } else {
+                    canvas.style.cursor = 'crosshair';
+                    tooltip.style.display = 'none';
+                }
+                draw();
+            }
+            if (found) { tooltip.style.left = (mx + 15) + 'px'; tooltip.style.top = (my + 15) + 'px'; }
+        }
+
+        function calculateTheoryLine(curLvl, g, drainInnerX) {
+            const points = [];
+            const H = curLvl - g.bottomElev;
+            const hExit = g.drainTopElev - g.bottomElev; // 指向排水棱体
+            const tLX = -g.topWidth / 2;
+            const bLX = tLX - (g.topElev - g.bottomElev) * g.m1;
+
+            // 排水棱体起点 (由外部传入计算好的 drainInnerX)
+            const startX = bLX + H * g.m1;
+            const endX = drainInnerX;
+            const totalWidth = endX - startX;
+
+            for (let i = 0; i <= 60; i++) {
+                const x = startX + (totalWidth * i / 60);
+                let y = 0;
+                if (g.damMaterial === 'clay') {
+                    const ratio = (x - startX) / Math.max(1, totalWidth);
+                    y = Math.sqrt(Math.max(0, H * H - (H * H - hExit * hExit) * ratio));
+                } else {
+                    const cbLX = -g.coreBottomWidth / 2, cbRX = g.coreBottomWidth / 2;
+                    if (x < cbLX) {
+                        y = H - (H * 0.1) * (x - startX) / Math.max(1, cbLX - startX);
+                    } else if (x <= cbRX) {
+                        const drop = (H * 0.6) * (x - cbLX) / Math.max(1, g.coreBottomWidth);
+                        y = (H * 0.9) - drop;
+                    } else {
+                        const yAfter = H * 0.3;
+                        const ratio = (x - cbRX) / Math.max(1, endX - cbRX);
+                        y = Math.sqrt(Math.max(hExit * hExit, yAfter * yAfter - (yAfter * yAfter - hExit * hExit) * ratio));
+                    }
+                }
+                points.push({ x, y: y + g.bottomElev });
+            }
+            return points;
+        }
+
+        function updateDiagnosis(curLvl, g, sensors, waterOnDamX, bRX) {
+            const sorted = [...sensors].sort((a, b) => a.x - b.x);
+            let maxElev = curLvl;
+            let maxPos = "库水位点";
+            sorted.forEach(s => {
+                if (s.water > maxElev) { maxElev = s.water; maxPos = "测点 " + s.id; }
+            });
+            let exitElev = g.bottomElev;
+            if (sorted.length > 0) exitElev = sorted[sorted.length - 1].water;
+            const deltaH = curLvl - exitElev;
+            const totalL = bRX - waterOnDamX;
+            const gradient = totalL > 0 ? deltaH / totalL : 0;
+            const allowed = g.damMaterial === 'clay' ? 0.25 : 0.15;
+            const gradEl = document.getElementById('diagGradient');
+            const gradStatusEl = document.getElementById('diagGradientStatus');
+            gradEl.innerText = gradient.toFixed(4);
+            if (gradient > allowed) {
+                gradEl.style.color = 'var(--danger-color)';
+                gradStatusEl.innerText = "超标警报";
+                gradStatusEl.className = "diag-status status-warn";
+            } else {
+                gradEl.style.color = 'var(--primary-color)';
+                gradStatusEl.innerText = "运行正常";
+                gradStatusEl.className = "diag-status status-ok";
+            }
+            document.getElementById('diagExitElev').innerText = exitElev.toFixed(2);
+            document.getElementById('diagMaxElev').innerText = maxElev.toFixed(2);
+            document.getElementById('diagMaxPos').innerText = `位置: ${maxPos}`;
+        }
+
+        function draw() {
+            const g = globalConfig;
+            const s = sections.find(x => x.id === currentSectionId);
+            const curLvl = (s.localLevel !== null) ? s.localLevel : g.reservoirLevel;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const h = g.topElev - g.bottomElev;
+            const tLX = -g.topWidth / 2, tRX = g.topWidth / 2;
+            const bLX = tLX - h * g.m1;
+
+            // 计算下游坡台阶点与排水棱体位置
+            const stepPoints = [];
+            let cx = tRX, cy = g.topElev;
+            stepPoints.push({ x: cx, y: cy });
+
+            // 预先计算排水棱体固定位置（基于原始m2）
+            const drainInnerX = tRX + (g.topElev - g.drainTopElev) * g.m2;
+
+            if (g.stepHeight > 0) {
+                // 计算有效坡比以适配固定位置
+                const H_slope = g.topElev - g.drainTopElev;
+                const L_total = H_slope * g.m2;
+                const stepCount = Math.floor((H_slope - 0.01) / g.stepHeight);
+                const totalBermWidth = stepCount * g.stepWidth;
+
+                let effectiveM2 = g.m2;
+                if (H_slope > 0) {
+                    effectiveM2 = (L_total - totalBermWidth) / H_slope;
+                    if (effectiveM2 < 0) effectiveM2 = 0;
+                }
+
+                while (cy > g.drainTopElev + 0.1) {
+                    let drop = Math.min(g.stepHeight, cy - g.drainTopElev);
+                    if (drop <= 0) break;
+                    const run = drop * effectiveM2;
+                    cx += run; cy -= drop;
+                    stepPoints.push({ x: cx, y: cy }); // Slope end
+
+                    if (cy > g.drainTopElev + 0.05) {
+                        cx += g.stepWidth;
+                        stepPoints.push({ x: cx, y: cy }); // Berm end
+                    }
+                }
+                // 强制最后一点对齐 drainInnerX (消除浮点误差)
+                if (stepPoints.length > 0) {
+                    stepPoints[stepPoints.length - 1].x = drainInnerX;
+                }
+            } else {
+                cx = drainInnerX;
+            }
+            // const drainInnerX = cx; // Removed re-declaration
+
+            // 排水棱体几何计算
+            const hDrain = g.drainTopElev - g.bottomElev;
+            const drainOuterTopX = drainInnerX + g.drainTopWidth;
+            const drainOuterBottomX = drainOuterTopX + hDrain * g.drainSlope;
+
+            const waterOnDamX = bLX + (curLvl - g.bottomElev) * g.m1;
+            const extX = bLX - (drainInnerX - bLX) * 0.1;
+
+            updateDiagnosis(curLvl, g, s.sensors, waterOnDamX, drainInnerX);
+
+            // 绘制库区水体
+            ctx.fillStyle = 'rgba(29, 78, 216, 0.7)';
+            ctx.beginPath();
+            ctx.moveTo(toCanvas(extX, g.bottomElev).x, toCanvas(extX, g.bottomElev).y);
+            ctx.lineTo(toCanvas(bLX, g.bottomElev).x, toCanvas(bLX, g.bottomElev).y);
+            ctx.lineTo(toCanvas(waterOnDamX, curLvl).x, toCanvas(waterOnDamX, curLvl).y);
+            ctx.lineTo(toCanvas(extX, curLvl).x, toCanvas(extX, curLvl).y);
+            ctx.closePath(); ctx.fill();
+
+            // 绘制浸润色带
+            const sortedSensors = [...s.sensors].sort((a, b) => a.x - b.x);
+            if (sortedSensors.length > 0) {
+                ctx.fillStyle = 'rgba(96, 165, 250, 0.15)';
+                ctx.beginPath();
+                ctx.moveTo(toCanvas(waterOnDamX, curLvl).x, toCanvas(waterOnDamX, curLvl).y);
+                sortedSensors.forEach(sen => ctx.lineTo(toCanvas(sen.x, sen.water).x, toCanvas(sen.x, sen.water).y));
+                ctx.lineTo(toCanvas(drainInnerX, g.drainTopElev).x, toCanvas(drainInnerX, g.drainTopElev).y);
+                ctx.lineTo(toCanvas(drainInnerX, g.bottomElev).x, toCanvas(drainInnerX, g.bottomElev).y);
+                ctx.lineTo(toCanvas(waterOnDamX, g.bottomElev).x, toCanvas(waterOnDamX, g.bottomElev).y);
+                ctx.closePath(); ctx.fill();
+            }
+
+            // 绘制坝体轮廓
+            ctx.beginPath();
+            ctx.moveTo(toCanvas(bLX, g.bottomElev).x, toCanvas(bLX, g.bottomElev).y);
+            ctx.lineTo(toCanvas(tLX, g.topElev).x, toCanvas(tLX, g.topElev).y);
+
+            // 下游台阶
+            stepPoints.forEach(p => {
+                ctx.lineTo(toCanvas(p.x, p.y).x, toCanvas(p.x, p.y).y);
+            });
+
+            ctx.lineTo(toCanvas(drainInnerX, g.drainTopElev).x, toCanvas(drainInnerX, g.drainTopElev).y);
+            ctx.lineTo(toCanvas(drainInnerX, g.bottomElev).x, toCanvas(drainInnerX, g.bottomElev).y);
+            ctx.lineTo(toCanvas(bLX, g.bottomElev).x, toCanvas(bLX, g.bottomElev).y);
+            ctx.strokeStyle = '#475569'; ctx.lineWidth = 2.5; ctx.stroke();
+            ctx.fillStyle = '#f8fafc'; ctx.globalCompositeOperation = 'destination-over';
+            ctx.fill(); ctx.globalCompositeOperation = 'source-over';
+
+            // 绘制排水棱体
+            ctx.beginPath();
+            ctx.moveTo(toCanvas(drainInnerX, g.bottomElev).x, toCanvas(drainInnerX, g.bottomElev).y);
+            ctx.lineTo(toCanvas(drainInnerX, g.drainTopElev).x, toCanvas(drainInnerX, g.drainTopElev).y);
+            ctx.lineTo(toCanvas(drainOuterTopX, g.drainTopElev).x, toCanvas(drainOuterTopX, g.drainTopElev).y);
+            ctx.lineTo(toCanvas(drainOuterBottomX, g.bottomElev).x, toCanvas(drainOuterBottomX, g.bottomElev).y);
+            ctx.closePath();
+            ctx.fillStyle = '#64748b'; ctx.fill();
+            ctx.strokeStyle = '#334155'; ctx.lineWidth = 1.5; ctx.stroke();
+
+            // 绘制心墙
+            if (g.damMaterial === 'earth') {
+                const ctLX = -g.coreTopWidth / 2, ctRX = g.coreTopWidth / 2;
+                const cbLX = -g.coreBottomWidth / 2, cbRX = g.coreBottomWidth / 2;
+                ctx.beginPath();
+                ctx.moveTo(toCanvas(cbLX, g.bottomElev).x, toCanvas(cbLX, g.bottomElev).y);
+                ctx.lineTo(toCanvas(ctLX, g.coreTopElev).x, toCanvas(ctLX, g.coreTopElev).y);
+                ctx.lineTo(toCanvas(ctRX, g.coreTopElev).x, toCanvas(ctRX, g.coreTopElev).y);
+                ctx.lineTo(toCanvas(cbRX, g.bottomElev).x, toCanvas(cbRX, g.bottomElev).y);
+                ctx.fillStyle = 'rgba(148, 163, 184, 0.3)'; ctx.fill();
+                ctx.strokeStyle = '#94a3b8'; ctx.setLineDash([4, 4]); ctx.stroke(); ctx.setLineDash([]);
+            }
+
+            // 绘制理论浸润线
+            const theoryPoints = calculateTheoryLine(curLvl, g, drainInnerX);
+            ctx.beginPath(); ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 2;
+            theoryPoints.forEach((p, i) => {
+                const cp = toCanvas(p.x, p.y);
+                if (i === 0) ctx.moveTo(cp.x, cp.y); else ctx.lineTo(cp.x, cp.y);
+            });
+            ctx.stroke();
+
+            // 绘制实测浸润线
+            ctx.beginPath(); ctx.setLineDash([5, 5]); ctx.strokeStyle = '#06b6d4'; ctx.lineWidth = 2.5;
+            ctx.moveTo(toCanvas(waterOnDamX, curLvl).x, toCanvas(waterOnDamX, curLvl).y);
+            sortedSensors.forEach(sen => ctx.lineTo(toCanvas(sen.x, sen.water).x, toCanvas(sen.x, sen.water).y));
+            // 实测线延伸至排水棱体内壁
+            ctx.lineTo(toCanvas(drainInnerX, g.drainTopElev).x, toCanvas(drainInnerX, g.drainTopElev).y);
+            ctx.stroke(); ctx.setLineDash([]);
+
+            // 绘制测管
+            s.sensors.forEach(sen => {
+                const isHovered = hoveredSensor === sen;
+                const surfaceElev = getDamSurfaceElev(sen.x, g);
+                const bot = toCanvas(sen.x, Math.max(g.bottomElev, sen.bottom));
+                const wat = toCanvas(sen.x, Math.min(surfaceElev, sen.water));
+                const topWall = toCanvas(sen.x, surfaceElev);
+                ctx.beginPath(); ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1;
+                ctx.moveTo(bot.x, bot.y); ctx.lineTo(topWall.x, topWall.y); ctx.stroke();
+                ctx.beginPath(); ctx.strokeStyle = isHovered ? '#1d4ed8' : '#2563eb'; ctx.lineWidth = isHovered ? 10 : 6;
+                ctx.moveTo(bot.x, bot.y); ctx.lineTo(wat.x, wat.y); ctx.stroke();
+            });
+        }
+
+        function resetView() {
+            transform = { x: canvas.width / 2.8, y: canvas.height * 0.8, scale: canvas.width / 200 };
+            draw();
+        }
+
+        function resize() {
+            const container = document.getElementById('canvasContainer');
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            draw();
+        }
+
+        window.onload = init;
+        window.onresize = resize;
+    </script>
+</body>
+
+</html>

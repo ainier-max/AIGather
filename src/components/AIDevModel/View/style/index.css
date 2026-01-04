@@ -1,0 +1,10 @@
+.firstClass {
+    position: absolute;
+    top: 50px;
+    left: 50px
+}
+
+.titleClass {
+    color: red;
+    font-size: 30px;
+}
