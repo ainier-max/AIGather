@@ -15,7 +15,7 @@ export default defineConfig({
     host: "0.0.0.0",
     port: "4070",
     proxy: {
-      ["/api"]: {
+      ["/cbc"]: {
         // 接口地址
         target: "http://127.0.0.1:8087/cbc/",
         changeOrigin: true,

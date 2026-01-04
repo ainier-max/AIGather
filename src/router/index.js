@@ -2,6 +2,10 @@ import { createRouter, createWebHashHistory, createWebHistory } from "vue-router
 const routes = [
   {
     path: "/",
+    component: () => import("@/components/views/login/View/index.vue")
+  },
+  {
+    path: "/AiModel",
     component: () => import("@/components/AIDevModel/View/index.vue")
   },
 
