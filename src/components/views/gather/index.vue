@@ -175,7 +175,7 @@ const handleSelect_menu = (key, keyPath) => {
     }
     if (key == "6") {
         console.log("用户管理");
-        // router.push('/gather/userManager')
+        router.push('/user-manager')
     }
 };
 

@@ -22,6 +22,14 @@ const routes = [
         component: () => import("@/components/views/gather/task-apply/View/index.vue")
       },
 
+      {
+        name: "user-manager",
+        path: "/user-manager",
+        component: () => import("@/components/views/gather/user-manager/View/index.vue")
+      },
+
+
+
 
     ]
   }
