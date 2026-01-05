@@ -16,12 +16,12 @@ const routes = [
     name: "gather",
     component: () => import("@/components/views/gather/index.vue"),
     children: [
-      //系统设置
-      // {
-      //   name: "structural-settings",
-      //   path: "/structural-settings",
-      //   component: () => import("@/components/views/screen/systemSettings/structural-settings/index.vue")
-      // },
+      {
+        name: "task-apply",
+        path: "/task-apply",
+        component: () => import("@/components/views/gather/task-apply/index.vue")
+      },
+
 
     ]
   }

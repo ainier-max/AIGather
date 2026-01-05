@@ -142,11 +142,11 @@ const handleSelect_menu = (key, keyPath) => {
     }
     if (key == "2") {
         console.log("任务采集");
-        // router.push('/gather/gatherTask')
+        //router.push('/gather/gatherTask')
     }
     if (key == "3-1") {
         console.log("任务申请");
-        // router.push('/gather/taskApply')
+        router.push('/task-apply')
     }
     if (key == "3-2") {
         console.log("任务审批");
