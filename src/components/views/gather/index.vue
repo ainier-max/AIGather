@@ -4,7 +4,7 @@
             <el-header>
                 <div style="height: 100%; display: flex; justify-content: space-between; align-items: center;">
                     <div style="display: flex; align-items: center;">
-                        <span style="font-size: 20px; font-weight: bold; color: white;">AIGather System</span>
+                        <span style="font-size: 20px; font-weight: bold; color: white;">采集系统</span>
                     </div>
 
                     <div style="cursor: pointer; display: flex; align-items: center;">
