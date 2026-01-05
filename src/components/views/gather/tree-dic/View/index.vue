@@ -1,98 +1,175 @@
 <template>
-    <div style="height: 100%;" v-if="treeDicModel">
-        <div class="titleClass">树形字典</div>
-        <div style="margin:40px 50px">
-            <el-divider content-position="left" style="margin-left:50px"><span style="font-size: 18px">创建树形字典</span>
-            </el-divider>
-            <el-form :model="treeDicModel.ruleForm" :rules="rules" ref="ruleFormRef" label-width="100px">
-                <el-form-item label="字段名" prop="treename">
-                    <el-input v-model="treeDicModel.ruleForm.treename"
-                        placeholder="请输入树形字典字段名（如：ZZJG）*数据库表的字段名"></el-input>
-                </el-form-item>
-                <el-form-item label="字段描述" prop="treems">
-                    <el-input v-model="treeDicModel.ruleForm.treems" placeholder="请输入树形字典字段名称（如：组织机构）"></el-input>
-                </el-form-item>
-                <el-form-item label="字段长度" prop="treelength">
-                    <el-input v-model="treeDicModel.ruleForm.treelength" placeholder="请输入树形字典字段名称长度（如：30）"></el-input>
-                </el-form-item>
-            </el-form>
-            <div align="center">
-                <el-button type="primary" @click="onSubmit">创建树形字典</el-button>
-            </div>
+    <div class="tree-dic-container" v-if="treeDicModel">
+        <div class="titleClass">树形字典管理</div>
 
-            <el-divider content-position="left" style="margin-left:50px"><span style="font-size: 18px">树形字典选项维护</span>
-            </el-divider>
+        <div class="content-wrapper">
+            <!-- Create Section -->
+            <el-card class="section-card" shadow="never">
+                <template #header>
+                    <div class="card-header">
+                        <el-icon>
+                            <Plus />
+                        </el-icon>
+                        <span>创建树形字典</span>
+                    </div>
+                </template>
 
-            <el-select v-model="treeDicModel.currentTreeDicid" style="width:100%" placeholder="请选择">
-                <el-option v-for="item in treeDicModel.treedics" :key="item.treeid" :label="item.treems"
-                    :value="item.treeid">
-                </el-option>
-            </el-select>
+                <el-row :gutter="40" justify="center">
+                    <el-col :xs="24" :sm="20" :md="16" :lg="12">
+                        <el-form :model="treeDicModel.ruleForm" :rules="rules" ref="ruleFormRef" label-width="100px"
+                            status-icon>
+                            <el-form-item label="字段名" prop="treename">
+                                <el-input v-model="treeDicModel.ruleForm.treename" placeholder="请输入树形字典字段名 (例: ZZJG)">
+                                    <template #prefix>
+                                        <el-icon>
+                                            <Postcard />
+                                        </el-icon>
+                                    </template>
+                                </el-input>
+                            </el-form-item>
+                            <el-form-item label="字段描述" prop="treems">
+                                <el-input v-model="treeDicModel.ruleForm.treems" placeholder="请输入树形字典描述 (例: 组织机构)">
+                                    <template #prefix>
+                                        <el-icon>
+                                            <Document />
+                                        </el-icon>
+                                    </template>
+                                </el-input>
+                            </el-form-item>
+                            <el-form-item label="字段长度" prop="treelength">
+                                <el-input v-model="treeDicModel.ruleForm.treelength" placeholder="请输入字段最大长度 (例: 30)">
+                                    <template #prefix>
+                                        <el-icon>
+                                            <Handbag />
+                                        </el-icon>
+                                    </template>
+                                </el-input>
+                            </el-form-item>
 
-            <div style="height: 300px;border: 1px solid gray;margin-top:30px; overflow: auto;">
-                <el-tree :data="treeDicModel.treeData" default-expand-all :expand-on-click-node="false"
-                    :props="treeDicModel.defaultProps" :highlight-current="true"
-                    @node-click="handleNodeClick"></el-tree>
-            </div>
+                            <div style="text-align: center; margin-top: 20px;">
+                                <el-button type="primary" size="large" @click="onSubmit" :icon="CirclePlus">
+                                    立即创建树形字典
+                                </el-button>
+                            </div>
+                        </el-form>
+                    </el-col>
+                </el-row>
+            </el-card>
 
-            <div align="center" style="padding-top: 20px">
-                <el-button type="primary" @click="treeDicModel.showTreeDicDataAddWin()">添加树节点</el-button>
-                <el-button type="primary" @click="treeDicModel.showTreeDicDataEditWin()">修改树节点</el-button>
-                <el-button type="danger" @click="treeDicModel.deleteTreeDataWin()">删除树节点</el-button>
-                <el-button type="danger" @click="treeDicModel.deleteTreeDicWin()">删除树形字典</el-button>
-            </div>
-            <div style="height: 50px"></div>
+            <!-- Maintenance Section -->
+            <el-card class="section-card" shadow="never">
+                <template #header>
+                    <div class="card-header">
+                        <el-icon>
+                            <Edit />
+                        </el-icon>
+                        <span>树形字典选项维护</span>
+                    </div>
+                </template>
+
+                <div class="maintenance-content">
+                    <el-select v-model="treeDicModel.currentTreeDicid" filterable style="width:100%"
+                        placeholder="选择一个树形字典进行维护">
+                        <el-option v-for="item in treeDicModel.treedics" :key="item.treeid" :label="item.treems"
+                            :value="item.treeid">
+                            <span style="float: left">{{ item.treems }}</span>
+                            <span style="float: right; color: #8492a6; font-size: 13px">{{ item.treename }}</span>
+                        </el-option>
+                    </el-select>
+
+                    <div class="tree-panel">
+                        <el-tree :data="treeDicModel.treeData" default-expand-all :expand-on-click-node="false"
+                            :props="treeDicModel.defaultProps" :highlight-current="true" @node-click="handleNodeClick"
+                            node-key="id">
+                            <template #default="{ node, data }">
+                                <span class="custom-tree-node">
+                                    <el-icon style="margin-right: 6px; color: #64748b;">
+                                        <FolderOpened v-if="data.children" />
+                                        <Document v-else />
+                                    </el-icon>
+                                    <span>{{ node.label }}</span>
+                                </span>
+                            </template>
+                        </el-tree>
+                    </div>
+
+                    <div class="action-bar">
+                        <el-button-group>
+                            <el-button type="primary" :icon="Plus"
+                                @click="treeDicModel.showTreeDicDataAddWin()">添加节点</el-button>
+                            <el-button type="primary" :icon="Edit"
+                                @click="treeDicModel.showTreeDicDataEditWin()">修改节点</el-button>
+                        </el-button-group>
+
+                        <el-button-group style="margin-left: 20px;">
+                            <el-button type="danger" plain :icon="Delete"
+                                @click="treeDicModel.deleteTreeDataWin()">删除节点</el-button>
+                            <el-button type="danger" :icon="DeleteFilled"
+                                @click="treeDicModel.deleteTreeDicWin()">删除整个字典</el-button>
+                        </el-button-group>
+                    </div>
+                </div>
+            </el-card>
         </div>
 
         <!-- Add/Edit Dialog -->
-        <el-dialog :title="treeDicModel.treeDialogTitle" v-model="treeDicModel.dialogVisible" width="30%"
-            :before-close="handleClose">
+        <el-dialog :title="treeDicModel.treeDialogTitle" v-model="treeDicModel.dialogVisible" width="35%"
+            :before-close="handleClose" destroy-on-close align-center>
             <el-form :model="treeDicModel.treeDicDataForm" :rules="treeDicrules" ref="treeDicDataFormRef"
-                label-width="100px">
+                label-width="110px">
                 <el-form-item label="树节点ID" prop="treeid">
                     <el-input v-if="treeDicModel.editFlag == 0" v-model="treeDicModel.treeDicDataForm.treeid"
-                        placeholder="树节点ID"></el-input>
+                        placeholder="请输入唯一的节点ID" />
                     <el-input v-if="treeDicModel.editFlag == 1" v-model="treeDicModel.treeDicDataForm.treeid" disabled
-                        placeholder="树节点ID"></el-input>
+                        placeholder="节点ID" />
                 </el-form-item>
                 <el-form-item label="树节点内容" prop="treems">
-                    <el-input v-model="treeDicModel.treeDicDataForm.treems" placeholder="树节点内容"></el-input>
+                    <el-input v-model="treeDicModel.treeDicDataForm.treems" placeholder="请输入节点显示的名称" />
                 </el-form-item>
             </el-form>
 
             <template #footer>
                 <span class="dialog-footer">
                     <el-button @click="cancle">取 消</el-button>
-                    <el-button v-if="treeDicModel.editFlag == 0" type="primary" @click="addTreeDicData">确 定</el-button>
-                    <el-button v-if="treeDicModel.editFlag == 1" type="primary" @click="editTreeDicData">确 定</el-button>
+                    <el-button v-if="treeDicModel.editFlag == 0" type="primary" @click="addTreeDicData">确认添加</el-button>
+                    <el-button v-if="treeDicModel.editFlag == 1" type="primary"
+                        @click="editTreeDicData">确认修改</el-button>
                 </span>
             </template>
         </el-dialog>
 
 
         <!-- Delete Node Confirmation -->
-        <el-dialog title="确认框" v-model="treeDicModel.deleteTreeDataDialogVisible" width="30%">
-            <span style="color:red">将要删除( {{ treeDicModel.currentTreeLabel }} )与其所属的所有选项？</span>
+        <el-dialog title="安全删除确认" v-model="treeDicModel.deleteTreeDataDialogVisible" width="30%" align-center>
+            <div style="display: flex; align-items: center;">
+                <el-icon size="24" color="#ef4444" style="margin-right: 12px;">
+                    <WarningFilled />
+                </el-icon>
+                <span>将要删除 <b style="color:#ef4444">{{ treeDicModel.currentTreeLabel }}</b> 及其所属的所有子选项，确定继续吗？</span>
+            </div>
             <template #footer>
                 <span class="dialog-footer">
-                    <el-button @click="treeDicModel.deleteTreeDataDialogVisible = false">取 消</el-button>
-                    <el-button type="primary" @click="treeDicModel.deleteTreeData()">确 定</el-button>
+                    <el-button @click="treeDicModel.deleteTreeDataDialogVisible = false">取消</el-button>
+                    <el-button type="danger" @click="treeDicModel.deleteTreeData()">确定删除</el-button>
                 </span>
             </template>
         </el-dialog>
 
         <!-- Delete Dic Confirmation -->
-        <el-dialog title="确认框" v-model="treeDicModel.deleteTreeDicDialogVisible" width="30%">
-            <span style="color:red">将要删除该树形字典,数据不可恢复！</span>
+        <el-dialog title="高危操作确认" v-model="treeDicModel.deleteTreeDicDialogVisible" width="30%" align-center>
+            <div style="display: flex; align-items: center;">
+                <el-icon size="24" color="#ef4444" style="margin-right: 12px;">
+                    <WarningFilled />
+                </el-icon>
+                <span>将要永久删除该树形字典，数据不可恢复！确定执行此操作吗？</span>
+            </div>
             <template #footer>
                 <span class="dialog-footer">
-                    <el-button @click="treeDicModel.deleteTreeDicDialogVisible = false">取 消</el-button>
-                    <el-button type="primary" @click="treeDicModel.deleteTreeDic()">确 定</el-button>
+                    <el-button @click="treeDicModel.deleteTreeDicDialogVisible = false">取消</el-button>
+                    <el-button type="danger" @click="treeDicModel.deleteTreeDic()">持久化删除</el-button>
                 </span>
             </template>
         </el-dialog>
-
-
     </div>
 </template>
 
@@ -101,6 +178,18 @@ import { onMounted, ref, watch } from 'vue';
 import { treeDicStore } from "@/components/views/gather/tree-dic/Controller/treeDicStore.ts";
 import { storeToRefs } from "pinia";
 import { ElMessage, ElMessageBox } from 'element-plus';
+import {
+    Plus,
+    Edit,
+    Delete,
+    DeleteFilled,
+    CirclePlus,
+    Postcard,
+    Document,
+    Handbag,
+    FolderOpened,
+    WarningFilled
+} from '@element-plus/icons-vue';
 
 const store = treeDicStore();
 const { treeDicModel } = storeToRefs(store);
@@ -141,25 +230,10 @@ onMounted(() => {
 // Watchers
 watch(() => treeDicModel.value?.currentTreeDicid, (newVal) => {
     if (treeDicModel.value && newVal) {
-        // treeDicModel.value.currentTreeid = ""; // Handled in findTreeDic
-        // treeDicModel.value.currentTreeLabel = "";
         console.log('深度监听-新数据-currentTreeDicid', newVal);
         treeDicModel.value.findTreeDic(newVal);
     }
 }, { deep: true });
-
-// Note: In original code, currentTreeTableName watcher called findTreeDicData.
-// In Model refactoring, findTreeDic calls findTreeDicData directly after setting tableName.
-// So we might not strictly need to watch tableName here if the Model logic flows sequentially.
-// But to ensure reactivity if it changes otherwise:
-watch(() => treeDicModel.value?.currentTreeTableName, (newVal) => {
-    // This might be redundant if findTreeDic already calls findTreeDicData, 
-    // but useful if tableName is set via other means.
-    // console.log('深度监听-新数据-currentTreeTableName', newVal);
-    // if (newVal && treeDicModel.value) {
-    //     treeDicModel.value.findTreeDicData(newVal);
-    // }
-});
 
 const onSubmit = () => {
     if (!ruleFormRef.value) return;
@@ -175,14 +249,16 @@ const handleNodeClick = (data) => {
 };
 
 const handleClose = (done) => {
-    ElMessageBox.confirm('确认关闭？')
-        .then(() => {
-            treeDicModel.value.currentTreeid = "";
-            treeDicModel.value.currentTreeLabel = "";
-            done();
-            treeDicModel.value.dialogVisible = false; // Ensure it closes model prop
-        })
-        .catch(() => { });
+    ElMessageBox.confirm('确认关闭正在编辑的窗口吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'info'
+    }).then(() => {
+        treeDicModel.value.currentTreeid = "";
+        treeDicModel.value.currentTreeLabel = "";
+        done();
+        treeDicModel.value.dialogVisible = false;
+    }).catch(() => { });
 };
 
 const cancle = () => {
@@ -213,4 +289,16 @@ const editTreeDicData = () => {
 
 <style scoped>
 @import "./style/index.css";
+
+.maintenance-content {
+    padding: 10px 0;
+}
+
+.custom-tree-node b {
+    color: #ef4444;
+}
+
+:deep(.el-card__body) {
+    padding: 15px 20px;
+}
 </style>

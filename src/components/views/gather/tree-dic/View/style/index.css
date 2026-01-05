@@ -1,8 +1,78 @@
+.tree-dic-container {
+    padding: 12px 20px;
+    background-color: #f8fafc;
+    min-height: 100%;
+}
+
 .titleClass {
-    padding: 8px 16px;
-    background-color: #fff6f7;
-    border-radius: 4px;
-    border-left: 5px solid #fe6c6f;
-    margin: 10px 0;
-    line-height: 40px;
+    padding: 10px 20px;
+    background: linear-gradient(90deg, #fff1f2 0%, #ffffff 100%);
+    border-radius: 8px;
+    border-left: 6px solid #fe6c6f;
+    margin-bottom: 12px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e293b;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.section-card {
+    margin-bottom: 12px;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.section-card:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.card-header .el-icon {
+    margin-right: 8px;
+    color: #fe6c6f;
+}
+
+.tree-panel {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px;
+    background-color: #ffffff;
+    height: 280px;
+    overflow: auto;
+    margin-top: 12px;
+}
+
+.action-bar {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.custom-tree-node {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    padding: 4px 0;
+}
+
+:deep(.el-form-item__label) {
+    font-weight: 500;
+    color: #475569;
+}
+
+:deep(.el-card__header) {
+    background-color: #f8fafc;
+    padding: 12px 20px;
+    border-bottom: 1px solid #e2e8f0;
 }

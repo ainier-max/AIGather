@@ -1,8 +1,34 @@
+.user-manager-container {
+    padding: 12px 20px;
+    background-color: #f8fafc;
+    min-height: 100%;
+}
+
 .titleClass {
-    padding: 8px 16px;
-    background-color: #fff6f7;
-    border-radius: 4px;
-    border-left: 5px solid #fe6c6f;
-    margin: 10px 0;
-    line-height: 40px;
+    padding: 10px 20px;
+    background: linear-gradient(90deg, #fff1f2 0%, #ffffff 100%);
+    border-radius: 8px;
+    border-left: 6px solid #fe6c6f;
+    margin-bottom: 12px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e293b;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.table-card {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border: none;
+}
+
+:deep(.el-table) {
+    --el-table-header-bg-color: #f1f5f9;
+    border-radius: 8px;
+}
+
+:deep(.el-table th) {
+    font-weight: 600;
+    color: #475569;
 }
