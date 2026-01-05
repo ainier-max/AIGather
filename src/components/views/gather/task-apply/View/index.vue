@@ -74,9 +74,14 @@
                         <el-col :span="6" v-if="['select', 'tree'].includes(field.type)">
                             <el-select v-model="field.dicid" placeholder="选择字典"
                                 @change="(val) => handleDicChange(field, val)">
-                                <el-option
-                                    v-for="dic in (field.type === 'select' ? taskApplyModel.allSelectdics : taskApplyModel.allTreedics)"
-                                    :key="dic.dicid" :label="dic.dicname" :value="dic.dicid" />
+                                <template v-if="field.type === 'select'">
+                                    <el-option v-for="dic in taskApplyModel.allSelectdics" :key="dic.dicid"
+                                        :label="dic.dicname" :value="dic.dicid" />
+                                </template>
+                                <template v-else>
+                                    <el-option v-for="dic in taskApplyModel.allTreedics" :key="dic.treeid"
+                                        :label="dic.treems" :value="dic.treeid" />
+                                </template>
                             </el-select>
                         </el-col>
                         <el-col :span="2">
@@ -136,11 +141,19 @@ const removeField = (index) => {
 }
 
 const handleDicChange = (field, dicid) => {
-    const dics = field.type === 'select' ? taskApplyModel.value.allSelectdics : taskApplyModel.value.allTreedics;
-    const selectedDic = dics.find(d => d.dicid === dicid);
+    const isSelect = field.type === 'select';
+    const dics = isSelect ? taskApplyModel.value.allSelectdics : taskApplyModel.value.allTreedics;
+    const idKey = isSelect ? 'dicid' : 'treeid';
+    const selectedDic = dics.find(d => d[idKey] === dicid);
+
     if (selectedDic) {
-        field.filedNameValue = selectedDic.dicname;
-        field.filedCommentValue = selectedDic.dicms;
+        if (isSelect) {
+            field.filedNameValue = selectedDic.dicname;
+            field.filedCommentValue = selectedDic.dicms;
+        } else {
+            field.filedNameValue = selectedDic.treename; // Using ID as name or should it also be treems? Based on user's earlier requirement for sync.
+            field.filedCommentValue = selectedDic.treems;
+        }
     }
 }
 

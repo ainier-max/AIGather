@@ -105,7 +105,7 @@ class TaskApplyModel {
         // and some way to create fields.
 
         const taskParam = {
-            sql: "gather_task.insertTask",
+            sql: "gather_task.applyTask",
             taskId: "TASK_" + Date.now(),
             taskName: this.taskForm.taskName,
             taskDec: this.taskForm.taskDec,
