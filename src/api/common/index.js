@@ -8,5 +8,13 @@ export default {
             data
         });
     },
+    //执行接口(增删改)
+    excute(data) {
+        return request({
+            url: "/cbc/excute.cbc",
+            method: "post",
+            data
+        });
+    },
 
 }
