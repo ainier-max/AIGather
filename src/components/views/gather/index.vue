@@ -167,7 +167,7 @@ const handleSelect_menu = (key, keyPath) => {
 
     if (key == "4") {
         console.log("下拉框字典");
-        // router.push('/gather/selectDic')
+        router.push('/select-dic')
     }
     if (key == "5") {
         console.log("树形字典");

@@ -23,6 +23,11 @@ const routes = [
       },
 
       {
+        name: "select-dic",
+        path: "/select-dic",
+        component: () => import("@/components/views/gather/select-dic/View/index.vue")
+      },
+      {
         name: "user-manager",
         path: "/user-manager",
         component: () => import("@/components/views/gather/user-manager/View/index.vue")
