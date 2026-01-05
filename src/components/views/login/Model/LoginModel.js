@@ -1,8 +1,8 @@
 import commonApi from "@/api/common/index.js";
 
 class LoginModel {
-    userid = "";
-    password = "";
+    userid = "cbc";
+    password = "123456";
 
     constructor() {
     }

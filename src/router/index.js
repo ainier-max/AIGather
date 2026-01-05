@@ -19,7 +19,7 @@ const routes = [
       {
         name: "task-apply",
         path: "/task-apply",
-        component: () => import("@/components/views/gather/task-apply/index.vue")
+        component: () => import("@/components/views/gather/task-apply/View/index.vue")
       },
 
 

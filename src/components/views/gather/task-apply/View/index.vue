@@ -73,9 +73,7 @@
                             <el-select v-model="field.dicid" placeholder="选择字典">
                                 <el-option
                                     v-for="dic in (field.type === 'select' ? taskApplyModel.allSelectdics : taskApplyModel.allTreedics)"
-                                    :key="dic.id || dic.tableid || dic.treeid"
-                                    :label="dic.name || dic.tablename || dic.treename"
-                                    :value="dic.id || dic.tableid || dic.treeid" />
+                                    :key="dic.dicid" :label="dic.dicname" :value="dic.dicid" />
                             </el-select>
                         </el-col>
                         <el-col :span="2">
@@ -106,6 +104,7 @@ const formRef = ref(null);
 
 onMounted(() => {
     store.initClass();
+    console.log("onMounted--taskApplyModel", taskApplyModel);
 });
 
 const handleFileChange = (e) => {

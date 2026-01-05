@@ -13,7 +13,7 @@ export default defineConfig({
   },
   server: {
     host: "0.0.0.0",
-    port: "4070",
+    port: "4090",
     proxy: {
       ["/cbc"]: {
         // 接口地址
