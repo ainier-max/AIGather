@@ -80,7 +80,7 @@
                             </el-select>
                         </el-col>
                         <el-col :span="2">
-                            <el-button type="danger" icon="Delete" circle @click="removeField(index)"
+                            <el-button type="danger" :icon="Minus" @click="removeField(index)"
                                 v-if="field.filedNameValue !== 'GATHER_NAME'"></el-button>
                         </el-col>
                     </el-row>
@@ -98,7 +98,7 @@
 import { onMounted, ref } from 'vue';
 import { taskApplyStore } from "@/components/views/gather/task-apply/Controller/taskApplyStore.ts";
 import { storeToRefs } from "pinia";
-import { Plus, Delete } from '@element-plus/icons-vue';
+import { Plus, Minus } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 
 const store = taskApplyStore();
