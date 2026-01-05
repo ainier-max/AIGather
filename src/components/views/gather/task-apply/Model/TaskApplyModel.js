@@ -88,11 +88,6 @@ class TaskApplyModel {
     }
 
     async submitTask(loginUserid) {
-        // Implement logic similar to reference
-        // 1. Check duplicates
-        // 2. Build field_objects
-        // 3. Call APIs (mock or real)
-
         if (this.checkDuplicateFields()) {
             ElMessage.error('字段名重复');
             return false;
@@ -100,9 +95,18 @@ class TaskApplyModel {
 
         const tableName = this.getTableNamePrefix() + this.taskForm.taskTableName.toUpperCase();
 
-        // Construct params for task insertion and table creation
-        // Since we don't have the full original source, we assume 'gather_task.insertTask' 
-        // and some way to create fields.
+        // 构建字段对象数组
+        let field_objects = [];
+        this.fieldDataForm.fileds.forEach(item => {
+            let field_json = {
+                "filed_name": item.filedNameValue,
+                "filed_comment": item.filedCommentValue,
+                "filed_type": item.type,
+                "filed_length": item.length,
+                "dic_id": item.dicid
+            };
+            field_objects.push(field_json);
+        });
 
         const taskParam = {
             sql: "gather_task.applyTask",
@@ -111,15 +115,26 @@ class TaskApplyModel {
             taskDec: this.taskForm.taskDec,
             tableName: tableName,
             gatherType: this.taskForm.gatherType,
-            creater: loginUserid
+            creater: loginUserid,
+            field_objects: JSON.stringify(field_objects) // 通常后端接收字符串化的JSON
         };
 
         try {
-            await commonApi.excute(taskParam);
-            ElMessage.success('任务申请提交成功');
-            return true;
+            const res = await commonApi.excute(taskParam);
+            if (res && res.length > 0) {
+                const result = res[0];
+                if (result.state === "success") {
+                    ElMessage.success('任务申请提交成功');
+                    return true;
+                } else {
+                    // 弹出后端返回的具体错误信息
+                    ElMessage.error(result.message || '提交失败');
+                    return false;
+                }
+            }
+            return false;
         } catch (e) {
-            ElMessage.error('提交失败: ' + e.message);
+            ElMessage.error('网络请求失败: ' + e.message);
             return false;
         }
     }
