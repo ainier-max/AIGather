@@ -12,7 +12,7 @@
                 <el-col :span="12">
                     <el-form-item label="任务表名" prop="taskTableName" :rules="[{ required: true, message: '必填' }]">
                         <el-input v-model="taskApplyModel.taskForm.taskTableName">
-                            <template #prepend>GATHER_B_</template>
+                            <template #prepend>{{ taskApplyModel.getTableNamePrefix() }}</template>
                         </el-input>
                     </el-form-item>
                 </el-col>
@@ -57,20 +57,23 @@
                     style="margin-bottom: 15px; border: 1px solid #EBEEF5; padding: 10px;">
                     <el-row :gutter="10">
                         <el-col :span="6">
-                            <el-input v-model="field.filedNameValue" placeholder="字段名">
-                                <template #prepend>名</template>
+                            <el-input v-model="field.filedNameValue" placeholder="字段名"
+                                :disabled="['select', 'tree'].includes(field.type)">
+                                <template #prepend>字段名</template>
                             </el-input>
                         </el-col>
                         <el-col :span="6">
-                            <el-input v-model="field.filedCommentValue" placeholder="描述">
-                                <template #prepend>述</template>
+                            <el-input v-model="field.filedCommentValue" placeholder="描述"
+                                :disabled="['select', 'tree'].includes(field.type)">
+                                <template #prepend>描述</template>
                             </el-input>
                         </el-col>
                         <el-col :span="4">
                             <el-tag>{{ field.type }}</el-tag>
                         </el-col>
                         <el-col :span="6" v-if="['select', 'tree'].includes(field.type)">
-                            <el-select v-model="field.dicid" placeholder="选择字典">
+                            <el-select v-model="field.dicid" placeholder="选择字典"
+                                @change="(val) => handleDicChange(field, val)">
                                 <el-option
                                     v-for="dic in (field.type === 'select' ? taskApplyModel.allSelectdics : taskApplyModel.allTreedics)"
                                     :key="dic.dicid" :label="dic.dicname" :value="dic.dicid" />
@@ -129,6 +132,15 @@ const addField = (type, dec, name) => {
 const removeField = (index) => {
     if (taskApplyModel.value) {
         taskApplyModel.value.removeField(index);
+    }
+}
+
+const handleDicChange = (field, dicid) => {
+    const dics = field.type === 'select' ? taskApplyModel.value.allSelectdics : taskApplyModel.value.allTreedics;
+    const selectedDic = dics.find(d => d.dicid === dicid);
+    if (selectedDic) {
+        field.filedNameValue = selectedDic.dicname;
+        field.filedCommentValue = selectedDic.dicms;
     }
 }
 

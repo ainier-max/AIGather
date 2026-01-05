@@ -30,6 +30,16 @@ class TaskApplyModel {
     layerImage = '';
     photoObj = null; // Store file object
 
+    getTableNamePrefix() {
+        const typeMap = {
+            'point': 'PT_',
+            'polyline': 'PL_',
+            'polygon': 'PG_',
+            'none': 'PA_'
+        };
+        return typeMap[this.taskForm.gatherType] || 'PT_';
+    }
+
     constructor() {
     }
 
@@ -88,7 +98,7 @@ class TaskApplyModel {
             return false;
         }
 
-        const tableName = "GATHER_B_" + this.taskForm.taskTableName.toUpperCase();
+        const tableName = this.getTableNamePrefix() + this.taskForm.taskTableName.toUpperCase();
 
         // Construct params for task insertion and table creation
         // Since we don't have the full original source, we assume 'gather_task.insertTask' 
