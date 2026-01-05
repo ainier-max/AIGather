@@ -27,6 +27,12 @@ const routes = [
         path: "/user-manager",
         component: () => import("@/components/views/gather/user-manager/View/index.vue")
       },
+      {
+        name: "tree-dic",
+        path: "/tree-dic",
+        component: () => import("@/components/views/gather/tree-dic/View/index.vue")
+      },
+
 
 
 

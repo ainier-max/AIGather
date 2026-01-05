@@ -171,7 +171,7 @@ const handleSelect_menu = (key, keyPath) => {
     }
     if (key == "5") {
         console.log("树形字典");
-        // router.push('/gather/treeDic')
+        router.push('/tree-dic')
     }
     if (key == "6") {
         console.log("用户管理");
