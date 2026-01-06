@@ -17,6 +17,11 @@ const routes = [
     component: () => import("@/components/views/gather/index.vue"),
     children: [
       {
+        name: "gather-task",
+        path: "/gather-task",
+        component: () => import("@/components/views/gather/gather-task/View/index.vue")
+      },
+      {
         name: "task-apply",
         path: "/task-apply",
         component: () => import("@/components/views/gather/task-apply/View/index.vue")
