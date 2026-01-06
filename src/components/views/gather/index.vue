@@ -154,7 +154,7 @@ const handleSelect_menu = (key, keyPath) => {
     }
     if (key == "3-3") {
         console.log("任务调配");
-        // router.push('/gather/taskDeploy')
+        router.push('/task-deploy')
     }
     if (key == "3-4") {
         console.log("任务详情");
