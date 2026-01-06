@@ -23,6 +23,11 @@ const routes = [
       },
 
       {
+        name: "task-detail",
+        path: "/task-detail",
+        component: () => import("@/components/views/gather/task-detail/View/index.vue")
+      },
+      {
         name: "task-deploy",
         path: "/task-deploy",
         component: () => import("@/components/views/gather/task-deploy/View/index.vue")
