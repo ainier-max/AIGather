@@ -1,0 +1,66 @@
+.task-approval-container {
+    padding: 12px 20px;
+    background-color: #f8fafc;
+    min-height: 100%;
+}
+
+.titleClass {
+    padding: 10px 20px;
+    background: linear-gradient(90deg, #fff1f2 0%, #ffffff 100%);
+    border-radius: 8px;
+    border-left: 6px solid #fe6c6f;
+    margin-bottom: 12px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e293b;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.approval-card {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+:deep(.el-collapse) {
+    border-radius: 8px;
+    overflow: hidden;
+    border: none;
+}
+
+:deep(.el-collapse-item__header) {
+    background-color: #f1f5f9;
+    padding: 0 16px;
+    font-weight: 600;
+    color: #334155;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+:deep(.el-collapse-item__content) {
+    background-color: #ffffff;
+    padding: 16px;
+}
+
+.task-form-wrapper {
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.field-table-title {
+    margin: 12px 0;
+    color: #ef4444;
+    font-size: 13px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    color: #64748b;
+}

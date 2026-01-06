@@ -23,6 +23,11 @@ const routes = [
       },
 
       {
+        name: "task-approval",
+        path: "/task-approval",
+        component: () => import("@/components/views/gather/task-approval/View/index.vue")
+      },
+      {
         name: "select-dic",
         path: "/select-dic",
         component: () => import("@/components/views/gather/select-dic/View/index.vue")
