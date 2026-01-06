@@ -2,127 +2,58 @@
   <div style="height: 100%;overflow:hidden">
     <div class="titleClass">任务详情</div>
     <div style="margin:40px 50px;width: 25%;float: left;height: 100%;">
-      <el-divider content-position="left" style="margin-left:50px"
-        ><span style="font-size: 18px">图层树</span>
+      <el-divider content-position="left" style="margin-left:50px"><span style="font-size: 18px">图层树</span>
       </el-divider>
-      <el-tree
-        ref="layerTree"
-        :data="gatherTaskTreeData"
-        @node-click="handleNodeClick"
-        node-key="id"
-        class="down-tree"
-        default-expand-all
-        :highlight-current="true"
-        :expand-on-click-node="false"
-      >
+      <el-tree ref="layerTree" :data="gatherTaskTreeData" @node-click="handleNodeClick" node-key="id" class="down-tree"
+        default-expand-all :highlight-current="true" :expand-on-click-node="false">
         <span class="custom-tree-node" slot-scope="{ node, data }">
-          <span v-if="data.taskid == null"
-            ><i class="el-icon-folder"></i>{{ node.label }}</span
-          >
+          <span v-if="data.taskid == null"><i class="el-icon-folder"></i>{{ node.label }}</span>
           <span v-if="data.taskid != null">
-            <i
-              v-if="data.type.includes('polyline')"
-              :style="data.colorStyle"
-              class="el-icon-share"
-            ></i>
-            <i
-              v-if="data.type.includes('polygon')"
-              :style="data.colorStyle"
-              class="el-icon-house"
-            ></i>
+            <i v-if="data.type.includes('polyline')" :style="data.colorStyle" class="el-icon-share"></i>
+            <i v-if="data.type.includes('polygon')" :style="data.colorStyle" class="el-icon-house"></i>
             <i v-if="data.type.includes('absence')" class="el-icon-tickets"></i>
-            <el-image
-              v-if="data.type.includes('point')"
-              style="width: 14px;height: 14px"
-              :src="data.layerimg"
-            ></el-image>
+            <el-image v-if="data.type.includes('point')" style="width: 14px;height: 14px"
+              :src="data.layerimg"></el-image>
             {{ node.label }}
           </span>
         </span>
       </el-tree>
     </div>
 
-    <div
-      style="margin:40px 50px;width: 58%;float: right;height: 80%;padding-right:20px;overflow-y: auto"
-    >
-      <el-divider content-position="left" style="margin-left:50px"
-        ><span style="font-size: 18px">图层详情</span>
+    <div style="margin:40px 50px;width: 58%;float: right;height: 80%;padding-right:20px;overflow-y: auto">
+      <el-divider content-position="left" style="margin-left:50px"><span style="font-size: 18px">图层详情</span>
       </el-divider>
 
       <el-row>
         <el-col :span="12">
-          <el-input
-            placeholder="任务名称"
-            v-model="taskName"
-            style="width: 80%"
-            :disabled="editFlag"
-          >
+          <el-input placeholder="任务名称" v-model="taskName" style="width: 80%" :disabled="editFlag">
           </el-input>
         </el-col>
 
         <el-col :span="12">
-          <div
-            class="filediv"
-            style="cursor:pointer;"
-            v-show="taskType == 'point'"
-            title="图层图标"
-            ref="fileRef"
-          >
-            <input
-              type="file"
-              disabled
-              ref="layerImgRef"
-              @change="choosePhoto"
-              style="cursor:pointer;"
-              accept="image/*"
-            />
+          <div class="filediv" style="cursor:pointer;" v-show="taskType == 'point'" title="图层图标" ref="fileRef">
+            <input type="file" disabled ref="layerImgRef" @change="choosePhoto" style="cursor:pointer;"
+              accept="image/*" />
           </div>
-          <div
-            v-show="taskType == 'polyline' || taskType == 'polygon'"
-            title="图层颜色"
-            class="colorClass"
-            ref="colorRef"
-          >
-            <el-color-picker
-              :disabled="editFlag"
-              ref="layerColorRef"
-              v-model="layerColor"
-            ></el-color-picker>
+          <div v-show="taskType == 'polyline' || taskType == 'polygon'" title="图层颜色" class="colorClass" ref="colorRef">
+            <el-color-picker :disabled="editFlag" ref="layerColorRef" v-model="layerColor"></el-color-picker>
           </div>
         </el-col>
       </el-row>
 
       <el-row style="padding-top: 20px">
         <el-col :span="24">
-          <el-input
-            placeholder="任务描述"
-            v-model="taskDescription"
-            style="width: 100%"
-            :disabled="editFlag"
-          >
+          <el-input placeholder="任务描述" v-model="taskDescription" style="width: 100%" :disabled="editFlag">
           </el-input>
         </el-col>
       </el-row>
 
       <div align="center" style="padding-top: 20px">
-        <el-button
-          v-if="editFlag == true"
-          size="small"
-          type="warning"
-          @click="editTaskDetail()"
-          >修改</el-button
-        >
-        <el-button
-          v-if="editFlag == false"
-          size="small"
-          type="primary"
-          @click="saveTaskDetail()"
-          >保存</el-button
-        >
+        <el-button v-if="editFlag == true" size="small" type="warning" @click="editTaskDetail()">修改</el-button>
+        <el-button v-if="editFlag == false" size="small" type="primary" @click="saveTaskDetail()">保存</el-button>
       </div>
 
-      <el-divider content-position="left" style="margin-left:50px"
-        ><span style="font-size: 18px">图层字段</span>
+      <el-divider content-position="left" style="margin-left:50px"><span style="font-size: 18px">图层字段</span>
       </el-divider>
 
       <el-table :data="gatherTaskFieldData" border style="width: 100%;">
@@ -139,340 +70,148 @@
 
         <el-table-column fixed="right" label="操作" width="100">
           <template slot-scope="scope">
-            <i
-              class="el-icon-edit"
-              style="color:cornflowerblue;cursor:pointer;padding-left:10px;padding-right: 10px"
-              @click="showEditGatherTaskFieldWin(scope.row)"
-            ></i>
+            <i class="el-icon-edit" style="color:cornflowerblue;cursor:pointer;padding-left:10px;padding-right: 10px"
+              @click="showEditGatherTaskFieldWin(scope.row)"></i>
 
-            <i
-              class="el-icon-delete"
-              style="color:red;cursor:pointer"
-              @click="showDeleteGatherTaskFieldWin(scope.row)"
-            ></i>
+            <i class="el-icon-delete" style="color:red;cursor:pointer"
+              @click="showDeleteGatherTaskFieldWin(scope.row)"></i>
           </template>
         </el-table-column>
       </el-table>
 
       <div style="height: 20px"></div>
-      <el-divider content-position="left" style="margin-left:50px;"
-        ><span style="font-size: 18px">新增字段</span>
+      <el-divider content-position="left" style="margin-left:50px;"><span style="font-size: 18px">新增字段</span>
       </el-divider>
-      <el-form
-        align="center"
-        :model="addFieldDataForm"
-        :inline="true"
-        ref="addFieldDataForm"
-      >
+      <el-form align="center" :model="addFieldDataForm" :inline="true" ref="addFieldDataForm">
         <el-row>
           <el-col v-if="addFieldType == 'word'" :span="20">
             <el-form-item :rules="filedNameRule" prop="wordFieldNameValue">
-              <el-input
-                size="small"
-                style="width: 130px"
-                v-model="addFieldDataForm.wordFieldNameValue"
-                placeholder="字段名,如NAME"
-              ></el-input>
+              <el-input size="small" style="width: 130px" v-model="addFieldDataForm.wordFieldNameValue"
+                placeholder="字段名,如NAME"></el-input>
             </el-form-item>
-            <el-form-item
-              :rules="filedCommentRule"
-              prop="wordFieldCommentValue"
-            >
-              <el-input
-                size="small"
-                style="width: 130px"
-                v-model="addFieldDataForm.wordFieldCommentValue"
-                placeholder="字段描述,如名称"
-              ></el-input>
+            <el-form-item :rules="filedCommentRule" prop="wordFieldCommentValue">
+              <el-input size="small" style="width: 130px" v-model="addFieldDataForm.wordFieldCommentValue"
+                placeholder="字段描述,如名称"></el-input>
             </el-form-item>
             <el-form-item :rules="filedLengthRule" prop="wordFieldLengthValue">
-              <el-input
-                size="small"
-                style="width: 160px;font-size:12px"
-                v-model="addFieldDataForm.wordFieldLengthValue"
-                placeholder="字段存储长度,如30"
-              ></el-input>
+              <el-input size="small" style="width: 160px;font-size:12px" v-model="addFieldDataForm.wordFieldLengthValue"
+                placeholder="字段存储长度,如30"></el-input>
             </el-form-item>
           </el-col>
           <el-col v-if="addFieldType == 'select'" :span="20">
             <el-form-item :rules="filedNameRule" prop="selectFieldNameValue">
-              <el-input
-                size="small"
-                style="width: 130px;font-size:12px"
-                v-model="addFieldDataForm.selectFieldNameValue"
-                placeholder="字段名,如NAME"
-                :disabled="true"
-              ></el-input>
+              <el-input size="small" style="width: 130px;font-size:12px" v-model="addFieldDataForm.selectFieldNameValue"
+                placeholder="字段名,如NAME" :disabled="true"></el-input>
             </el-form-item>
-            <el-form-item
-              :rules="filedCommentRule"
-              prop="selectFieldCommentValue"
-            >
-              <el-input
-                size="small"
-                style="width: 130px;font-size:12px"
-                v-model="addFieldDataForm.selectFieldCommentValue"
-                placeholder="字段描述,如名称"
-                :disabled="true"
-              ></el-input>
+            <el-form-item :rules="filedCommentRule" prop="selectFieldCommentValue">
+              <el-input size="small" style="width: 130px;font-size:12px"
+                v-model="addFieldDataForm.selectFieldCommentValue" placeholder="字段描述,如名称" :disabled="true"></el-input>
             </el-form-item>
-            <el-form-item
-              :rules="filedLengthRule"
-              prop="selectFieldLengthValue"
-            >
-              <el-input
-                size="small"
-                style="width: 160px;font-size:12px"
-                v-model="addFieldDataForm.selectFieldLengthValue"
-                placeholder="字段存储长度,如30"
-                :disabled="true"
-              ></el-input>
+            <el-form-item :rules="filedLengthRule" prop="selectFieldLengthValue">
+              <el-input size="small" style="width: 160px;font-size:12px"
+                v-model="addFieldDataForm.selectFieldLengthValue" placeholder="字段存储长度,如30" :disabled="true"></el-input>
             </el-form-item>
-            <el-select
-              size="small"
-              v-model="addFieldDataForm.selectDicId"
-              @change="filedSelectChange"
-              style="width:20%;padding-top: 5px"
-              placeholder="请选择"
-            >
-              <el-option
-                v-for="selectItem in selectArrData"
-                :key="selectItem.dicid"
-                :label="selectItem.dicms"
-                :value="selectItem.dicid"
-              >
+            <el-select size="small" v-model="addFieldDataForm.selectDicId" @change="filedSelectChange"
+              style="width:20%;padding-top: 5px" placeholder="请选择">
+              <el-option v-for="selectItem in selectArrData" :key="selectItem.dicid" :label="selectItem.dicms"
+                :value="selectItem.dicid">
               </el-option>
             </el-select>
           </el-col>
 
           <el-col v-if="addFieldType == 'tree'" :span="20">
             <el-form-item :rules="filedNameRule" prop="treeFieldNameValue">
-              <el-input
-                size="small"
-                style="width: 130px;font-size:12px"
-                v-model="addFieldDataForm.treeFieldNameValue"
-                placeholder="字段名,如NAME"
-                :disabled="true"
-              ></el-input>
+              <el-input size="small" style="width: 130px;font-size:12px" v-model="addFieldDataForm.treeFieldNameValue"
+                placeholder="字段名,如NAME" :disabled="true"></el-input>
             </el-form-item>
-            <el-form-item
-              :rules="filedCommentRule"
-              prop="treeFieldCommentValue"
-            >
-              <el-input
-                size="small"
-                style="width: 130px;font-size:12px"
-                v-model="addFieldDataForm.treeFieldCommentValue"
-                placeholder="字段描述,如名称"
-                :disabled="true"
-              ></el-input>
+            <el-form-item :rules="filedCommentRule" prop="treeFieldCommentValue">
+              <el-input size="small" style="width: 130px;font-size:12px"
+                v-model="addFieldDataForm.treeFieldCommentValue" placeholder="字段描述,如名称" :disabled="true"></el-input>
             </el-form-item>
             <el-form-item :rules="filedLengthRule" prop="treeFieldLengthValue">
-              <el-input
-                size="small"
-                style="width: 160px;font-size:12px"
-                v-model="addFieldDataForm.treeFieldLengthValue"
-                placeholder="字段存储长度,如30"
-                :disabled="true"
-              ></el-input>
+              <el-input size="small" style="width: 160px;font-size:12px" v-model="addFieldDataForm.treeFieldLengthValue"
+                placeholder="字段存储长度,如30" :disabled="true"></el-input>
             </el-form-item>
-            <el-select
-              size="small"
-              v-model="addFieldDataForm.treeDicId"
-              @change="filedTreeChange"
-              style="width:20%;padding-top: 5px"
-              placeholder="请选择"
-            >
-              <el-option
-                v-for="selectItem in treeArrData"
-                :key="selectItem.treeid"
-                :label="selectItem.treems"
-                :value="selectItem.treeid"
-              >
+            <el-select size="small" v-model="addFieldDataForm.treeDicId" @change="filedTreeChange"
+              style="width:20%;padding-top: 5px" placeholder="请选择">
+              <el-option v-for="selectItem in treeArrData" :key="selectItem.treeid" :label="selectItem.treems"
+                :value="selectItem.treeid">
               </el-option>
             </el-select>
           </el-col>
 
-          <el-col
-            v-if="
-              addFieldType == 'time' ||
-                addFieldType == 'photo' ||
-                addFieldType == 'audio' ||
-                addFieldType == 'video' ||
-                addFieldType == 'rich'
-            "
-            :span="20"
-          >
+          <el-col v-if="
+            addFieldType == 'time' ||
+            addFieldType == 'photo' ||
+            addFieldType == 'audio' ||
+            addFieldType == 'video' ||
+            addFieldType == 'rich'
+          " :span="20">
             <el-form-item :rules="filedNameRule" prop="otherFieldNameValue">
-              <el-input
-                size="small"
-                style="width: 130px;font-size:12px"
-                v-model="addFieldDataForm.otherFieldNameValue"
-                placeholder="字段名,如NAME"
-              ></el-input>
+              <el-input size="small" style="width: 130px;font-size:12px" v-model="addFieldDataForm.otherFieldNameValue"
+                placeholder="字段名,如NAME"></el-input>
             </el-form-item>
-            <el-form-item
-              :rules="filedCommentRule"
-              prop="otherFieldCommentValue"
-            >
-              <el-input
-                size="small"
-                style="width: 130px;font-size:12px"
-                v-model="addFieldDataForm.otherFieldCommentValue"
-                placeholder="字段描述,如名称"
-              ></el-input>
+            <el-form-item :rules="filedCommentRule" prop="otherFieldCommentValue">
+              <el-input size="small" style="width: 130px;font-size:12px"
+                v-model="addFieldDataForm.otherFieldCommentValue" placeholder="字段描述,如名称"></el-input>
             </el-form-item>
           </el-col>
 
           <el-col v-if="addFieldType != ''" :span="4" style="padding-top: 5px">
-            <el-button type="primary" size="small" @click="addField()"
-              >新增</el-button
-            >
-            <el-button type="danger" size="small" @click="cancleAddField()"
-              >取消</el-button
-            >
+            <el-button type="primary" size="small" @click="addField()">新增</el-button>
+            <el-button type="danger" size="small" @click="cancleAddField()">取消</el-button>
           </el-col>
         </el-row>
       </el-form>
 
       <div align="center" style="padding-top: 30px">
-        <el-button
-          type="success"
-          size="small"
-          :disabled="addFlag"
-          @click="add('word')"
-          >文字字段</el-button
-        >
-        <el-button
-          type="success"
-          size="small"
-          :disabled="addFlag"
-          @click="add('select')"
-          >下拉框字段</el-button
-        >
-        <el-button
-          type="success"
-          size="small"
-          :disabled="addFlag"
-          @click="add('tree')"
-          >树形字段</el-button
-        >
-        <el-button
-          type="success"
-          size="small"
-          :disabled="addFlag"
-          @click="add('time')"
-          >时间字段</el-button
-        >
+        <el-button type="success" size="small" :disabled="addFlag" @click="add('word')">文字字段</el-button>
+        <el-button type="success" size="small" :disabled="addFlag" @click="add('select')">下拉框字段</el-button>
+        <el-button type="success" size="small" :disabled="addFlag" @click="add('tree')">树形字段</el-button>
+        <el-button type="success" size="small" :disabled="addFlag" @click="add('time')">时间字段</el-button>
 
-        <el-button
-          type="success"
-          size="small"
-          :disabled="addFlag"
-          @click="add('rich')"
-          >富文本字段</el-button
-        >
-        <el-button
-          type="success"
-          size="small"
-          :disabled="addFlag"
-          @click="add('photo')"
-          >图片字段</el-button
-        >
-        <el-button
-          type="success"
-          size="small"
-          :disabled="addFlag"
-          @click="add('audio')"
-          >音频字段</el-button
-        >
-        <el-button
-          type="success"
-          size="small"
-          :disabled="addFlag"
-          @click="add('video')"
-          >视频字段</el-button
-        >
+        <el-button type="success" size="small" :disabled="addFlag" @click="add('rich')">富文本字段</el-button>
+        <el-button type="success" size="small" :disabled="addFlag" @click="add('photo')">图片字段</el-button>
+        <el-button type="success" size="small" :disabled="addFlag" @click="add('audio')">音频字段</el-button>
+        <el-button type="success" size="small" :disabled="addFlag" @click="add('video')">视频字段</el-button>
       </div>
     </div>
 
-    <el-dialog
-      title="图层字段修改"
-      :visible.sync="fieldDialogVisible"
-      :close-on-click-modal="false"
-      ref="editFieldDialogVisibleRef"
-      width="30%"
-    >
+    <el-dialog title="图层字段修改" :visible.sync="fieldDialogVisible" :close-on-click-modal="false"
+      ref="editFieldDialogVisibleRef" width="30%">
       <el-form :model="fieldDataForm" ref="fieldDataForm" label-width="100px">
-        <el-form-item
-          :rules="filedNameRule"
-          v-if="
-            currentField != null &&
-              currentField.field_type != 'select' &&
-              currentField.field_type != 'tree'
-          "
-          label="字段名"
-          prop="field_name"
-        >
-          <el-input
-            v-model="fieldDataForm.field_name"
-            placeholder="字段名"
-          ></el-input>
+        <el-form-item :rules="filedNameRule" v-if="
+          currentField != null &&
+          currentField.field_type != 'select' &&
+          currentField.field_type != 'tree'
+        " label="字段名" prop="field_name">
+          <el-input v-model="fieldDataForm.field_name" placeholder="字段名"></el-input>
         </el-form-item>
-        <el-form-item
-          :rules="filedCommentRule"
-          v-if="
-            currentField != null &&
-              currentField.field_type != 'select' &&
-              currentField.field_type != 'tree'
-          "
-          label="字段描述"
-          prop="field_dec"
-        >
-          <el-input
-            v-model="fieldDataForm.field_dec"
-            placeholder="字段描述"
-          ></el-input>
+        <el-form-item :rules="filedCommentRule" v-if="
+          currentField != null &&
+          currentField.field_type != 'select' &&
+          currentField.field_type != 'tree'
+        " label="字段描述" prop="field_dec">
+          <el-input v-model="fieldDataForm.field_dec" placeholder="字段描述"></el-input>
         </el-form-item>
-        <el-form-item
-          :rules="filedLengthRule"
-          v-if="
-            fieldDataForm.field_length != null &&
-              fieldDataForm.field_length != '' &&
-              currentField != null &&
-              currentField.field_type != 'time' &&
-              currentField.field_type != 'select' &&
-              currentField.field_type != 'tree'
-          "
-          label="字段长度"
-          prop="field_length"
-        >
-          <el-input
-            v-model="fieldDataForm.field_length"
-            placeholder="字段长度"
-          ></el-input>
+        <el-form-item :rules="filedLengthRule" v-if="
+          fieldDataForm.field_length != null &&
+          fieldDataForm.field_length != '' &&
+          currentField != null &&
+          currentField.field_type != 'time' &&
+          currentField.field_type != 'select' &&
+          currentField.field_type != 'tree'
+        " label="字段长度" prop="field_length">
+          <el-input v-model="fieldDataForm.field_length" placeholder="字段长度"></el-input>
         </el-form-item>
 
-        <el-form-item
-          label="显示级别"
-          prop="field_length"
-          v-if="
-            currentField != null &&
-              currentField.field_type != 'video' &&
-              currentField.field_type != 'audio'
-          "
-        >
-          <el-select
-            v-model="fieldDataForm.show_flag"
-            style="width:100%"
-            placeholder="请选择"
-          >
-            <el-option
-              v-for="item in showFlagArr"
-              :key="item"
-              :label="item"
-              :value="item"
-            >
+        <el-form-item label="显示级别" prop="field_length" v-if="
+          currentField != null &&
+          currentField.field_type != 'video' &&
+          currentField.field_type != 'audio'
+        ">
+          <el-select v-model="fieldDataForm.show_flag" style="width:100%" placeholder="请选择">
+            <el-option v-for="item in showFlagArr" :key="item" :label="item" :value="item">
             </el-option>
           </el-select>
         </el-form-item>
@@ -484,20 +223,11 @@
       </span>
     </el-dialog>
 
-    <el-dialog
-      title="确认框"
-      :visible.sync="deleteFieldDialogVisible"
-      :close-on-click-modal="false"
-      width="30%"
-    >
-      <span style="color:red"
-        >将要删除字段({{ deleteFieldName }}),数据将不可恢复！</span
-      >
+    <el-dialog title="确认框" :visible.sync="deleteFieldDialogVisible" :close-on-click-modal="false" width="30%">
+      <span style="color:red">将要删除字段({{ deleteFieldName }}),数据将不可恢复！</span>
       <span slot="footer" class="dialog-footer">
         <el-button @click="deleteGatherTaskFieldCancle">取 消</el-button>
-        <el-button type="primary" @click="deleteGatherTaskField"
-          >确 定</el-button
-        >
+        <el-button type="primary" @click="deleteGatherTaskField">确 定</el-button>
       </span>
     </el-dialog>
   </div>
@@ -577,7 +307,7 @@ export default {
     };
   },
   watch: {},
-  mounted: function() {
+  mounted: function () {
     this.findGatherTaskTree();
   },
   methods: {
@@ -920,7 +650,7 @@ export default {
       var oFReader = new FileReader();
       var file = photoObj.path[0].files[0];
       oFReader.readAsDataURL(file);
-      oFReader.onloadend = function(oFRevent) {
+      oFReader.onloadend = function (oFRevent) {
         var src = oFRevent.target.result;
         the.layerimg = src;
         photoObj.path[1].style.background =

@@ -158,7 +158,8 @@
                                 <template v-else-if="taskDetailModel.addFieldType === 'tree'">
                                     <el-form-item>
                                         <el-select v-model="taskDetailModel.addFieldDataForm.treeDicId"
-                                            placeholder="选择树形字典" @change="handleDicChange('tree')">
+                                            style="width: 150px;" placeholder="选择树形字典"
+                                            @change="handleDicChange('tree')">
                                             <el-option v-for="item in taskDetailModel.treeArrData" :key="item.treeid"
                                                 :label="item.treems" :value="item.treeid" />
                                         </el-select>
