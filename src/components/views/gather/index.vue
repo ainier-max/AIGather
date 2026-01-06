@@ -162,7 +162,7 @@ const handleSelect_menu = (key, keyPath) => {
     }
     if (key == "3-5") {
         console.log("任务分配");
-        // router.push('/gather/taskDistribution')
+        router.push('/task-distribution')
     }
 
     if (key == "4") {
