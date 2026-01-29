@@ -6,14 +6,14 @@ import GatherPageModel from '../Model/GatherPageModel.js';
 import { ref } from 'vue';
 
 export const gatherPageStore = defineStore('gatherPageNoneStoreId', () => {
-    const modelClass = ref<any>(null);
+    const gatherPageModel = ref<any>(null);
 
     function initClass() {
-        modelClass.value = new GatherPageModel();
+        gatherPageModel.value = new GatherPageModel();
     }
 
     return {
-        modelClass,
+        gatherPageModel,
         initClass
     };
 });

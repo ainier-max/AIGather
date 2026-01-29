@@ -1,49 +1,94 @@
 /* gather-page (None type) Styles */
 .gather-page-none-container {
-    padding: 20px;
-    background: #f5f7fa;
-    min-height: calc(100vh - 100px);
+    padding: 30px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    min-height: calc(100vh - 60px);
 }
 
 .titleClass {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 20px;
-    color: #2c3e50;
-    border-left: 5px solid #409eff;
-    padding-left: 15px;
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 30px;
+    color: #1e293b;
+    border-left: 6px solid #3b82f6;
+    padding-left: 20px;
+    letter-spacing: -0.5px;
 }
 
+/* Table View Styles */
 .table-header {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 20px;
+    align-items: center;
+    margin-bottom: 25px;
+    background: #fff;
+    padding: 20px 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
 .pagination-container {
-    margin-top: 20px;
+    margin-top: 25px;
+    padding: 15px 20px;
+    background: #fff;
+    border-radius: 10px;
     display: flex;
     justify-content: flex-end;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
 }
 
+/* Form View Styles */
 .form-container {
     background: #fff;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-    max-width: 800px;
-    margin: 0 auto;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    max-width: 900px;
+    margin: 20px auto 40px;
+    border: 1px solid #f1f5f9;
 }
 
 .form-title {
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 25px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #ebeef5;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 35px;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.form-title::before {
+    content: '';
+    width: 4px;
+    height: 24px;
+    background: #3b82f6;
+    border-radius: 2px;
 }
 
 .form-footer {
-    margin-top: 30px;
-    text-align: center;
+    margin-top: 50px;
+    padding-top: 25px;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.form-footer .el-button {
+    padding: 12px 35px;
+    font-weight: 600;
+    border-radius: 8px;
+}
+
+:deep(.el-table) {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+:deep(.el-table th.el-table__cell) {
+    background-color: #f8fafc;
+    color: #475569;
+    font-weight: 600;
 }
