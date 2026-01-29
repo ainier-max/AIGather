@@ -1,0 +1,49 @@
+/* gather-page (None type) Styles */
+.gather-page-none-container {
+    padding: 20px;
+    background: #f5f7fa;
+    min-height: calc(100vh - 100px);
+}
+
+.titleClass {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #2c3e50;
+    border-left: 5px solid #409eff;
+    padding-left: 15px;
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.pagination-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.form-container {
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.form-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 25px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ebeef5;
+}
+
+.form-footer {
+    margin-top: 30px;
+    text-align: center;
+}

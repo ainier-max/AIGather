@@ -69,6 +69,7 @@ const getTypeTag = (type) => {
         case 'point': return 'primary';
         case 'polyline': return 'success';
         case 'polygon': return 'warning';
+        case 'none': return 'info';
         case 'absence': return 'info';
         default: return '';
     }

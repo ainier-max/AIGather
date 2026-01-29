@@ -34,8 +34,10 @@ export default class GatherTaskModel {
      * 开始采集，跳转到采集页面
      */
     gather(row) {
+        const type = (row.type || "").toLowerCase();
+        const targetPath = type === 'none' ? '/gather-page' : '/gather-page-map';
         router.push({
-            path: '/gather-page-map',
+            path: targetPath,
             query: {
                 taskid: row.taskid,
                 type: row.type
