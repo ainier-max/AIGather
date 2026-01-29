@@ -17,9 +17,9 @@
 
             <el-table :data="userManagerModel.userData" stripe style="width: 100%"
                 v-loading="!userManagerModel.userData.length" size="small">
-                <el-table-column prop="username" label="用户名" width="180">
+                <el-table-column prop="userid" label="用户名" width="180">
                     <template #default="{ row }">
-                        <span style="font-weight: 500; color: #1e293b;">{{ row.username }}</span>
+                        <span style="font-weight: 500; color: #1e293b;">{{ row.userid }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="phone" label="手机号" width="180">
