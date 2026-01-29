@@ -61,9 +61,9 @@
             <template v-if="field.field_type == 'photo'">
               <div v-for="(uuid, i) in fieldModel.editPhotoArr" :key="i" class="preview-item photo">
                 <img :src="commonApi.getFileUrl(uuid, 'photo')" class="thumb">
-                <div class="remove-overlay" @click="fieldModel.removePhotoByUUID(uuid)">
+                <div class="remove-btn" @click.stop="fieldModel.removePhotoByUUID(uuid)" title="删除">
                   <el-icon>
-                    <Delete />
+                    <Close />
                   </el-icon>
                 </div>
               </div>
@@ -75,9 +75,9 @@
                 <audio controls>
                   <source :src="commonApi.getFileUrl(uuid, 'audio')" type="audio/mpeg">
                 </audio>
-                <div class="remove-overlay" @click="fieldModel.removeAudioByUUID(uuid)">
+                <div class="remove-btn" @click.stop="fieldModel.removeAudioByUUID(uuid)" title="删除">
                   <el-icon>
-                    <Delete />
+                    <Close />
                   </el-icon>
                 </div>
               </div>
@@ -89,9 +89,9 @@
                 <video controls>
                   <source :src="commonApi.getFileUrl(uuid, 'video')" type="video/mp4">
                 </video>
-                <div class="remove-overlay" @click="fieldModel.removeVideoByUUID(uuid)">
+                <div class="remove-btn" @click.stop="fieldModel.removeVideoByUUID(uuid)" title="删除">
                   <el-icon>
-                    <Delete />
+                    <Close />
                   </el-icon>
                 </div>
               </div>
@@ -138,6 +138,7 @@
 
 <script setup>
 import { ref, watch, onMounted, computed, reactive } from 'vue';
+import { Close, Delete } from '@element-plus/icons-vue';
 import { QuillEditor } from '@vueup/vue-quill';
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
 import commonApi from '@/api/common';
@@ -364,24 +365,32 @@ defineExpose({
   height: 100%;
 }
 
-.remove-overlay {
+.remove-btn {
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background: rgba(0, 0, 0, 0.4);
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  background: rgba(245, 108, 108, 0.9);
+  color: #fff;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0;
-  transition: opacity 0.2s;
   cursor: pointer;
-  color: #fff;
-  font-size: 20px;
+  z-index: 10;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  opacity: 0.8;
 }
 
-.preview-item:hover .remove-overlay {
+.remove-btn:hover {
+  transform: scale(1.1);
+  background: #f56c6c;
+  opacity: 1;
+}
+
+.preview-item:hover .remove-btn {
   opacity: 1;
 }
 
