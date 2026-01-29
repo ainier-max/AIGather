@@ -92,3 +92,25 @@
     color: #475569;
     font-weight: 600;
 }
+
+/* Table Media Styles */
+.table-media-preview {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.audio-list-popover,
+.video-list-popover {
+    padding: 10px 5px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.audio-list-popover audio::-webkit-media-controls-enclosure {
+    background-color: #f1f5f9;
+}
+
+:deep(.el-image-viewer__wrapper) {
+    z-index: 3000 !important;
+}

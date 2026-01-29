@@ -17,11 +17,49 @@
 
                 <!-- 动态生成列 -->
                 <el-table-column v-for="field in displayFields" :key="field.field_name" :prop="field.field_name"
-                    :label="field.field_dec" show-overflow-tooltip>
+                    :label="field.field_dec" :width="['photo', 'video', 'audio'].includes(field.field_type) ? 120 : ''"
+                    align="center">
                     <template #default="{ row }">
-                        <span v-if="['photo', 'video', 'audio'].includes(field.field_type)">
-                            [多媒体数据]
-                        </span>
+                        <!-- 照片展示 -->
+                        <div v-if="field.field_type === 'photo' && row[field.field_name]" class="table-media-preview">
+                            <el-image style="width: 50px; height: 50px; border-radius: 4px;"
+                                :src="commonApi.getFileUrl(row[field.field_name].split(',')[0], 'photo')"
+                                :preview-src-list="row[field.field_name].split(',').map(uuid => commonApi.getFileUrl(uuid, 'photo'))"
+                                preview-teleported fit="cover" />
+                        </div>
+
+                        <!-- 音频展示 -->
+                        <div v-else-if="field.field_type === 'audio' && row[field.field_name]"
+                            class="table-media-preview">
+                            <el-popover placement="top" :width="300" trigger="hover">
+                                <template #reference>
+                                    <el-button type="info" :icon="Headset" circle size="small" />
+                                </template>
+                                <div class="audio-list-popover">
+                                    <audio v-for="(uuid, idx) in row[field.field_name].split(',')" :key="idx" controls
+                                        style="width: 100%; margin-bottom: 5px;">
+                                        <source :src="commonApi.getFileUrl(uuid, 'audio')" type="audio/mpeg">
+                                    </audio>
+                                </div>
+                            </el-popover>
+                        </div>
+
+                        <!-- 视频展示 -->
+                        <div v-else-if="field.field_type === 'video' && row[field.field_name]"
+                            class="table-media-preview">
+                            <el-popover placement="top" :width="320" trigger="hover">
+                                <template #reference>
+                                    <el-button type="warning" :icon="VideoCamera" circle size="small" />
+                                </template>
+                                <div class="video-list-popover">
+                                    <video v-for="(uuid, idx) in row[field.field_name].split(',')" :key="idx" controls
+                                        style="width: 100%; margin-bottom: 5px; border-radius: 4px;">
+                                        <source :src="commonApi.getFileUrl(uuid, 'video')" type="video/mp4">
+                                    </video>
+                                </div>
+                            </el-popover>
+                        </div>
+
                         <span v-else>{{ row[field.field_name] }}</span>
                     </template>
                 </el-table-column>
@@ -75,8 +113,9 @@ import { useRoute } from 'vue-router';
 import { storeToRefs } from "pinia";
 import { gatherPageStore } from "../Controller/gatherPageStore.ts";
 import FieldComponent from "./components/FieldComponent.vue";
-import { Plus, EditPen, Check } from '@element-plus/icons-vue';
+import { Plus, EditPen, Check, VideoCamera, Headset } from '@element-plus/icons-vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
+import commonApi from '@/api/common';
 
 const route = useRoute();
 const store = gatherPageStore();
