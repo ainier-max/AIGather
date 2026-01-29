@@ -17,6 +17,11 @@ const routes = [
     component: () => import("@/components/views/gather/index.vue"),
     children: [
       {
+        name: "gather-state",
+        path: "/gather-state",
+        component: () => import("@/components/views/gather/gather-state/View/index.vue")
+      },
+      {
         name: "gather-page-map",
         path: "/gather-page-map",
         component: () => import("@/components/views/gather/gather-page-map/View/index.vue")

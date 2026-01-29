@@ -146,7 +146,7 @@ const handleSelect_menu = (key, keyPath) => {
     // 路由跳转配置 (已屏蔽)
     if (key == "1") {
         console.log("采集状况");
-        // router.push('/gather/gatherState')
+        router.push('/gather-state')
     }
     if (key == "2") {
         console.log("任务采集");
