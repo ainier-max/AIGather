@@ -30,8 +30,21 @@ service.interceptors.response.use((response) => {
     return response;
   }
 }, (error) => {
-  // 网络错误等
-  ElMessage.error(error.message || "网络请求失败");
+  // 处理 HTTP 错误 (如 500)
+  let errorMsg = error.message || "网络请求失败";
+
+  if (error.response && error.response.data) {
+    const data = error.response.data;
+    // 如果是数组格式的报错 { [ { message: "xxx" } ] }
+    if (Array.isArray(data) && data.length > 0 && data[0].message) {
+      errorMsg = data[0].message;
+    } else if (data.message) {
+      // 如果是对象格式的报错 { message: "xxx" }
+      errorMsg = data.message;
+    }
+  }
+
+  ElMessage.error(errorMsg);
   return Promise.reject(error);
 });
 
