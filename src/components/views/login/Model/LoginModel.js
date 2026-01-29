@@ -23,7 +23,9 @@ class LoginModel {
             if (data && data.objects && data.objects.length > 0) {
                 // 保存用户信息
                 const userid = data.objects[0].userid || data.objects[0].id;
+                const userType = data.objects[0].type || 'normal';
                 localStorage.setItem('loginUserid', userid);
+                localStorage.setItem('userType', userType);
 
                 // 获取客户端IP
                 try {

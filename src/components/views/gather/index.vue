@@ -34,7 +34,7 @@
                             background-color="#2c3e50" text-color="#fff" active-text-color="#ffd04b"
                             @select="handleSelect_menu">
 
-                            <el-menu-item index="1">
+                            <el-menu-item index="1" v-if="userType !== 'normal'">
                                 <el-icon>
                                     <Document />
                                 </el-icon>
@@ -48,7 +48,7 @@
                                 <span>采集任务</span>
                             </el-menu-item>
 
-                            <el-sub-menu index="3">
+                            <el-sub-menu index="3" v-if="userType !== 'normal'">
                                 <template #title>
                                     <el-icon>
                                         <Menu />
@@ -62,21 +62,21 @@
                                 <el-menu-item index="3-5">任务分配</el-menu-item>
                             </el-sub-menu>
 
-                            <el-menu-item index="4">
+                            <el-menu-item index="4" v-if="userType !== 'normal'">
                                 <el-icon>
                                     <DataAnalysis />
                                 </el-icon>
                                 <span>下拉框字典</span>
                             </el-menu-item>
 
-                            <el-menu-item index="5">
+                            <el-menu-item index="5" v-if="userType !== 'normal'">
                                 <el-icon>
                                     <Files />
                                 </el-icon>
                                 <span>树形字典</span>
                             </el-menu-item>
 
-                            <el-menu-item index="6">
+                            <el-menu-item index="6" v-if="userType !== 'normal'">
                                 <el-icon>
                                     <UserFilled />
                                 </el-icon>
@@ -106,13 +106,22 @@ import { User, ArrowDown, Document, Location, Menu, DataAnalysis, Files, UserFil
 const router = useRouter();
 const activeIndex = ref('1');
 const userid = ref('');
+const userType = ref('');
 
 onMounted(() => {
     // 获取登录用户信息
     userid.value = localStorage.getItem('loginUserid') || 'Guest';
+    userType.value = localStorage.getItem('userType') || 'normal';
+
     if (!userid.value || userid.value === 'null') {
         // Commented out as requested
         // router.push('/'); 
+    }
+
+    // 普通用户默认跳转到采集任务
+    if (userType.value === 'normal') {
+        activeIndex.value = '2';
+        router.push('/gather-task');
     }
 });
 
