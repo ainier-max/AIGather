@@ -143,7 +143,8 @@
                                 <template v-else-if="taskDetailModel.addFieldType === 'select'">
                                     <el-form-item>
                                         <el-select v-model="taskDetailModel.addFieldDataForm.selectDicId"
-                                            placeholder="选择预设字典" @change="handleDicChange('select')">
+                                            style="width: 150px;" placeholder="选择预设字典"
+                                            @change="handleDicChange('select')">
                                             <el-option v-for="item in taskDetailModel.selectArrData" :key="item.dicid"
                                                 :label="item.dicms" :value="item.dicid" />
                                         </el-select>
