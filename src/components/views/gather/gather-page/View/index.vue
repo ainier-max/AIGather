@@ -15,9 +15,9 @@
                 style="width: 100%">
                 <el-table-column type="index" label="序号" width="60" align="center" />
 
-                <!-- 动态生成列 (只显示部分字段以保持表格整洁) -->
-                <el-table-column v-for="field in gatherPageModel.fieldArr.slice(0, 5)" :key="field.field_name"
-                    :prop="field.field_name" :label="field.field_dec" show-overflow-tooltip>
+                <!-- 动态生成列 -->
+                <el-table-column v-for="field in displayFields" :key="field.field_name" :prop="field.field_name"
+                    :label="field.field_dec" show-overflow-tooltip>
                     <template #default="{ row }">
                         <span v-if="['photo', 'video', 'audio'].includes(field.field_type)">
                             [多媒体数据]
@@ -70,7 +70,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { storeToRefs } from "pinia";
 import { gatherPageStore } from "../Controller/gatherPageStore.ts";
@@ -81,6 +81,12 @@ import { ElMessageBox, ElMessage } from 'element-plus';
 const route = useRoute();
 const store = gatherPageStore();
 const { gatherPageModel } = storeToRefs(store);
+
+// 过滤列表显示的字段 (只限 show_flag 为 '1' 或 '2')
+const displayFields = computed(() => {
+    if (!gatherPageModel.value || !gatherPageModel.value.fieldArr) return [];
+    return gatherPageModel.value.fieldArr.filter(f => f.show_flag == '1' || f.show_flag == '2');
+});
 
 // 字段组件引用
 const fieldRefs = ref({});
