@@ -16,9 +16,12 @@ class GatherStateModel {
     // 当前页码
     currentPage = 1;
     // 每页条数
-    pageSize = 10;
+    pageSize = 5;
     // 总条数
     total = 0;
+
+    // 地图数据
+    mapData = [];
 
     constructor() {
     }
@@ -42,7 +45,6 @@ class GatherStateModel {
     }
 
 
-
     /**
      * 处理节点点击
      */
@@ -51,37 +53,68 @@ class GatherStateModel {
 
         this.currentNode = node;
 
+        // 如果是None空间类型，强制切换到列表模式
+        if (node.type && node.type.includes('none')) {
+            this.displayMode = 'list';
+            await this.loadMapData();
+            return;
+        }
+
         // 根据显示模式加载数据
         if (this.displayMode === 'list') {
-            await this.loadListData();
+            await this.loadMapData();
         } else {
-            // 地图模式 - 待实现
-            console.log("加载地图数据:", node);
+            await this.loadMapData();
         }
     }
 
     /**
-     * 加载列表数据
+     * 加载地图数据 (获取所有数据)
      */
-    async loadListData() {
+    async loadMapData() {
         if (!this.currentNode || !this.currentNode.tablename) return;
 
         try {
+            const start = 0;
+            const fieldStr = "*";
             const param = {
-                tableName: this.currentNode.tablename,
-                currentPage: this.currentPage,
-                pageSize: this.pageSize
+                sql: "gather_layer.find",
+                fieldStr: fieldStr,
+                layer_name: this.currentNode.tablename,
+                start: start,
+                pageSize: ''
             };
 
-            const res = await commonApi.findByPage(param);
+            const res = await commonApi.select(param);
 
             if (res && res.length > 0 && res[0].state === "success") {
-                this.listData = res[0].objects || [];
-                this.total = res[0].total || 0;
+                this.mapData = res[0].objects || [];
+                this.total = this.mapData.length;
+                this.updateListData();
+            } else {
+                this.mapData = [];
+                this.listData = [];
+                this.total = 0;
             }
         } catch (error) {
-            console.error("加载列表数据失败:", error);
+            console.error("加载数据失败:", error);
+            this.mapData = [];
+            this.listData = [];
+            this.total = 0;
         }
+    }
+
+    /**
+     * 更新列表数据 (前端分页)
+     */
+    updateListData() {
+        if (!this.mapData || this.mapData.length === 0) {
+            this.listData = [];
+            return;
+        }
+        const start = (this.currentPage - 1) * this.pageSize;
+        const end = start + this.pageSize;
+        this.listData = this.mapData.slice(start, end);
     }
 
     /**
@@ -89,8 +122,13 @@ class GatherStateModel {
      */
     toggleDisplayMode(mode) {
         this.displayMode = mode;
-        if (mode === 'list' && this.currentNode) {
-            this.loadListData();
+        if (this.currentNode) {
+            // 数据已存在则刷新列表(可能页码重置?)，不存在则加载
+            if (this.mapData.length === 0) {
+                this.loadMapData();
+            } else {
+                this.updateListData();
+            }
         }
     }
 
@@ -99,7 +137,7 @@ class GatherStateModel {
      */
     handlePageChange(page) {
         this.currentPage = page;
-        this.loadListData();
+        this.updateListData();
     }
 
     /**
@@ -108,7 +146,7 @@ class GatherStateModel {
     handleSizeChange(size) {
         this.pageSize = size;
         this.currentPage = 1;
-        this.loadListData();
+        this.updateListData();
     }
 }
 

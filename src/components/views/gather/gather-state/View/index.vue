@@ -55,7 +55,8 @@
                         <span v-else style="color: #94a3b8;">请选择图层</span>
                     </div>
                     <el-radio-group v-model="gatherStateModel.displayMode" @change="handleModeChange">
-                        <el-radio-button value="map">
+                        <el-radio-button value="map"
+                            :disabled="gatherStateModel.currentNode && gatherStateModel.currentNode.type && gatherStateModel.currentNode.type.includes('none')">
                             <el-icon style="vertical-align: middle; margin-right: 4px;">
                                 <Location />
                             </el-icon>
@@ -71,10 +72,51 @@
                 </div>
 
                 <!-- Map Display -->
+                <!-- Map Display -->
                 <div class="map-container" v-show="gatherStateModel.displayMode === 'map'">
-                    <div id="gatherStateMap"></div>
-                    <div class="map-placeholder" v-if="!gatherStateModel.currentNode">
-                        <span>请从左侧选择图层以查看地图数据</span>
+                    <div class="map-wrapper">
+                        <div id="gatherStateMap"></div>
+                        <div class="map-placeholder" v-if="!gatherStateModel.currentNode">
+                            <span>请从左侧选择图层以查看地图数据</span>
+                        </div>
+                    </div>
+
+                    <!-- Map Sidebar (Right Data List) -->
+                    <div class="map-sidebar" v-if="gatherStateModel.currentNode">
+                        <div class="sidebar-header">
+                            <span>{{ gatherStateModel.currentNode.label }}</span>
+                        </div>
+                        <div class="sidebar-list">
+                            <el-scrollbar>
+                                <div v-if="gatherStateModel.listData.length === 0" class="empty-list">
+                                    暂无数据
+                                </div>
+                                <div v-for="(item, index) in gatherStateModel.listData" :key="index" class="list-card">
+                                    <div class="card-header">
+                                        <div class="index-badge">{{ (gatherStateModel.currentPage - 1) *
+                                            gatherStateModel.pageSize +
+                                            index + 1 }}</div>
+                                        <div class="card-title">: {{ item.gather_cjr || '未知' }}</div>
+                                    </div>
+                                    <div class="card-content">
+                                        <div class="info-row">
+                                            <span class="label">创建时间:</span>
+                                            <span class="value">{{ item.gather_cjsj || '-' }}</span>
+                                        </div>
+                                        <div class="info-row">
+                                            <span class="label">位置地点:</span>
+                                            <span class="value">{{ item.gather_cjjq || '无' }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </el-scrollbar>
+                        </div>
+                        <div class="sidebar-pagination">
+                            <el-pagination small layout="total, sizes, prev, pager, next" :page-sizes="[5, 10, 20]"
+                                :total="gatherStateModel.total" v-model:current-page="gatherStateModel.currentPage"
+                                v-model:page-size="gatherStateModel.pageSize" @size-change="handleSizeChange"
+                                @current-change="handlePageChange" />
+                        </div>
                     </div>
                 </div>
 
@@ -109,18 +151,152 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { storeToRefs } from "pinia";
 import { gatherStateStore } from "@/components/views/gather/gather-state/Controller/gatherStateStore.ts";
 import { Document, FolderOpened, Share, House, Memo, Location, List } from '@element-plus/icons-vue';
 
+// OpenLayers imports
+import 'ol/ol.css';
+import Map from 'ol/Map';
+import View from 'ol/View';
+import TileLayer from 'ol/layer/Tile';
+import XYZ from 'ol/source/XYZ';
+import VectorLayer from 'ol/layer/Vector';
+import VectorSource from 'ol/source/Vector';
+import WKT from 'ol/format/WKT';
+import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style';
+import Feature from 'ol/Feature';
+import { Point } from 'ol/geom';
+
 const store = gatherStateStore();
 const { gatherStateModel } = storeToRefs(store);
+
+// Map related refs
+const map = ref(null);
+const vectorSource = ref(null);
+const wktFormat = new WKT();
 
 onMounted(async () => {
     store.initClass();
     if (gatherStateModel.value) {
         await gatherStateModel.value.loadLayerTree();
+    }
+    initMap();
+});
+
+// Initialize Map
+const initMap = () => {
+    vectorSource.value = new VectorSource();
+    const vectorLayer = new VectorLayer({
+        source: vectorSource.value,
+        style: new Style({
+            fill: new Fill({ color: 'rgba(255, 255, 255, 0.2)' }),
+            stroke: new Stroke({ color: '#ffcc33', width: 2 }),
+            image: new CircleStyle({
+                radius: 7,
+                fill: new Fill({ color: '#ffcc33' })
+            })
+        })
+    });
+
+    const tileLayerUrl = 'https://webst04.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}';
+
+    map.value = new Map({
+        target: 'gatherStateMap',
+        layers: [
+            new TileLayer({
+                source: new XYZ({
+                    url: tileLayerUrl,
+                    crossOrigin: 'anonymous'
+                })
+            }),
+            vectorLayer
+        ],
+        view: new View({
+            center: [118.1382, 24.4977], // Default center (Xiamen)
+            zoom: 10,
+            projection: 'EPSG:4326' // Use 4326 for easier WKT handling if data is in lat/lon
+        })
+    });
+};
+
+// Render Map Data
+const renderMapData = () => {
+    if (!vectorSource.value || !gatherStateModel.value.mapData) return;
+
+    vectorSource.value.clear();
+
+    const features = [];
+    gatherStateModel.value.mapData.forEach(item => {
+        let feature = null;
+        // Try WKT first (handle case sensitivity)
+        const wkt = item.GATHER_THE_GEOM || item.gather_the_geom || item.GATHER_THE_GEOM_TEXT;
+        if (wkt) {
+            try {
+                feature = wktFormat.readFeature(wkt, {
+                    dataProjection: 'EPSG:4326',
+                    featureProjection: 'EPSG:4326'
+                });
+            } catch (e) {
+                // console.warn('WKT Parse Error:', e);
+            }
+        }
+
+        // If no feature yet, try ZBX/ZBY for points
+        if (!feature) {
+            const x = item.GATHER_ZBX || item.gather_zbx;
+            const y = item.GATHER_ZBY || item.gather_zby;
+            if (x && y) {
+                const lng = parseFloat(x);
+                const lat = parseFloat(y);
+                if (!isNaN(lng) && !isNaN(lat)) {
+                    feature = new Feature({
+                        geometry: new Point([lng, lat])
+                    });
+                }
+            }
+        }
+
+        if (feature) {
+            features.push(feature);
+        }
+    });
+
+    if (features.length > 0) {
+        vectorSource.value.addFeatures(features);
+        const extent = vectorSource.value.getExtent();
+        // Check if extent is valid (not infinite)
+        if (extent && !extent.some(val => !isFinite(val))) {
+            try {
+                map.value.getView().fit(extent, {
+                    padding: [50, 50, 50, 50],
+                    duration: 1000,
+                    maxZoom: 18
+                });
+            } catch (e) {
+                console.warn("Map Fit Error:", e);
+            }
+        }
+    }
+};
+
+// Watchers
+watch(() => gatherStateModel.value?.mapData, () => {
+    if (gatherStateModel.value?.displayMode === 'map') {
+        renderMapData();
+    }
+}, { deep: true });
+
+watch(() => gatherStateModel.value?.displayMode, (newMode) => {
+    if (newMode === 'map') {
+        setTimeout(() => {
+            map.value.updateSize();
+            if (gatherStateModel.value.mapData.length > 0) {
+                // Re-render if switching back to map and data exists
+                renderMapData();
+            }
+        }, 100);
     }
 });
 
