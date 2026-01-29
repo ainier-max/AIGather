@@ -200,7 +200,7 @@ const initMap = () => {
         })
     });
 
-    const tileLayerUrl = 'https://webst04.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}';
+    const tileLayerUrl = window.config?.mapUrl || 'https://webst04.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}';
 
     map.value = new Map({
         target: 'gatherStateMap',
