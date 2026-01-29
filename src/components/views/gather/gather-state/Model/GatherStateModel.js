@@ -41,43 +41,7 @@ class GatherStateModel {
         }
     }
 
-    /**
-     * 构建树形数据结构
-     */
-    buildTreeData(tasks) {
-        const tree = [];
-        const groupMap = new Map();
 
-        tasks.forEach(task => {
-            const groupName = task.taskgroup || '未分组';
-
-            if (!groupMap.has(groupName)) {
-                const groupNode = {
-                    id: `group_${groupName}`,
-                    label: groupName,
-                    taskid: null,
-                    children: []
-                };
-                groupMap.set(groupName, groupNode);
-                tree.push(groupNode);
-            }
-
-            const taskNode = {
-                id: `task_${task.taskid}`,
-                label: task.taskname,
-                taskid: task.taskid,
-                type: task.type,
-                tablename: task.tasktablename,
-                colorStyle: task.color ? `color: ${task.color}` : '',
-                layerimg: task.layerimg || '',
-                ...task
-            };
-
-            groupMap.get(groupName).children.push(taskNode);
-        });
-
-        return tree;
-    }
 
     /**
      * 处理节点点击
