@@ -14,15 +14,7 @@ class TaskApplyModel {
 
     // 动态字段列表
     fieldDataForm = {
-        fileds: [
-            {
-                filedNameValue: "GATHER_NAME",
-                filedCommentValue: "采集名称",
-                type: "word",
-                length: "50",
-                dicid: ""
-            }
-        ]
+        fileds: []
     };
 
     allSelectdics = [];

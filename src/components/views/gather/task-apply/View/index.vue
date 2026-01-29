@@ -88,8 +88,7 @@
                             </el-select>
                         </el-col>
                         <el-col :span="2">
-                            <el-button type="danger" :icon="Minus" @click="removeField(index)"
-                                v-if="field.filedNameValue !== 'GATHER_NAME'"></el-button>
+                            <el-button type="danger" :icon="Minus" @click="removeField(index)"></el-button>
                         </el-col>
                     </el-row>
                 </div>
