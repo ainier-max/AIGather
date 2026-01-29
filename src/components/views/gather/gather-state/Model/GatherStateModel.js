@@ -23,6 +23,9 @@ class GatherStateModel {
     // 地图数据
     mapData = [];
 
+    // 字段数组
+    fieldArr = [];
+
     constructor() {
     }
 
@@ -44,6 +47,27 @@ class GatherStateModel {
         }
     }
 
+    /**
+     * 查询图层字段配置
+     */
+    async findGatherLayerField(taskid) {
+        try {
+            const response = await commonApi.select({
+                sql: "gather_task.findGatherLayerField",
+                taskid: taskid
+            });
+            if (response && response.length > 0 && response[0].state === "success") {
+                // 排除系统内部字段, 仅保留 show_flag 为 1 或 2 的字段供列表展示
+                // 但这里我们先保存所有字段，前端再根据show_flag过滤
+                this.fieldArr = response[0].objects || [];
+            } else {
+                this.fieldArr = [];
+            }
+        } catch (error) {
+            console.error("查询图层字段失败:", error);
+            this.fieldArr = [];
+        }
+    }
 
     /**
      * 处理节点点击
@@ -52,6 +76,9 @@ class GatherStateModel {
         if (!node.taskid) return; // 如果是分组节点，不处理
 
         this.currentNode = node;
+
+        // 1. 先获取字段配置
+        await this.findGatherLayerField(node.taskid);
 
         // 如果是None空间类型，强制切换到列表模式
         if (node.type && node.type.includes('none')) {

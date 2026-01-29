@@ -95,17 +95,23 @@
                                     <div class="card-header">
                                         <div class="index-badge">{{ (gatherStateModel.currentPage - 1) *
                                             gatherStateModel.pageSize +
-                                            index + 1 }}</div>
-                                        <div class="card-title">: {{ item.gather_cjr || '未知' }}</div>
+                                            index + 1
+                                            }}:</div>
+                                        <div class="card-title">
+                                            {{ getTitleField ? (item[getTitleField.field_name] || '无标题') :
+                                                (item.gather_cjr || '未知') }}
+                                        </div>
                                     </div>
                                     <div class="card-content">
-                                        <div class="info-row">
-                                            <span class="label">创建时间:</span>
-                                            <span class="value">{{ item.gather_cjsj || '-' }}</span>
+                                        <!-- Dynamic Fields (show_flag = 2) -->
+                                        <div v-for="field in getBodyFields" :key="field.field_name" class="info-row">
+                                            <span class="label">{{ field.field_dec }}:</span>
+                                            <span class="value">{{ item[field.field_name] }}</span>
                                         </div>
-                                        <div class="info-row">
-                                            <span class="label">位置地点:</span>
-                                            <span class="value">{{ item.gather_cjjq || '无' }}</span>
+                                        <!-- Fallback if no body fields -->
+                                        <div v-if="getBodyFields.length === 0" class="info-row">
+                                            <span class="label">采集时间:</span>
+                                            <span class="value">{{ item.gather_cjsj || '-' }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -151,7 +157,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref, watch, computed } from 'vue';
 import { storeToRefs } from "pinia";
 import { gatherStateStore } from "@/components/views/gather/gather-state/Controller/gatherStateStore.ts";
 import { Document, FolderOpened, Share, House, Memo, Location, List } from '@element-plus/icons-vue';
@@ -298,6 +304,18 @@ watch(() => gatherStateModel.value?.displayMode, (newMode) => {
             }
         }, 100);
     }
+});
+
+// 获取标题字段 (show_flag = 1)
+const getTitleField = computed(() => {
+    if (!gatherStateModel.value || !gatherStateModel.value.fieldArr) return null;
+    return gatherStateModel.value.fieldArr.find(field => field.show_flag == 1);
+});
+
+// 获取内容字段 (show_flag = 2)
+const getBodyFields = computed(() => {
+    if (!gatherStateModel.value || !gatherStateModel.value.fieldArr) return [];
+    return gatherStateModel.value.fieldArr.filter(field => field.show_flag == 2);
 });
 
 // 处理节点点击
