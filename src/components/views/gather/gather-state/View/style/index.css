@@ -1,25 +1,32 @@
 /* gather-state Styles */
 .gather-state-container {
+    height: 100%;
     padding: 20px;
+    box-sizing: border-box;
     background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    min-height: calc(100vh - 60px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .titleClass {
     font-size: 26px;
     font-weight: 700;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
     color: #1e293b;
     border-left: 6px solid #3b82f6;
     padding-left: 20px;
     letter-spacing: -0.5px;
+    flex-shrink: 0;
 }
 
 /* Main Content Layout */
 .state-content {
+    flex: 1;
     display: flex;
     gap: 20px;
-    height: calc(100vh - 150px);
+    overflow: hidden;
+    height: auto;
 }
 
 /* Left Tree Panel */
