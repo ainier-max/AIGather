@@ -10,8 +10,11 @@
                     </el-form-item>
                 </el-col>
                 <el-col :span="12">
-                    <el-form-item label="任务表名" prop="taskTableName" :rules="[{ required: true, message: '必填' }]">
-                        <el-input v-model="taskApplyModel.taskForm.taskTableName">
+                    <el-form-item label="任务表名" prop="taskTableName" :rules="[
+                        { required: true, message: '必填', trigger: 'blur' },
+                        { pattern: /^[A-Z]+$/, message: '必须全是大写英文字母', trigger: 'blur' }
+                    ]">
+                        <el-input v-model="taskApplyModel.taskForm.taskTableName" @input="handleTableNameInput">
                             <template #prepend>{{ taskApplyModel.getTableNamePrefix() }}</template>
                         </el-input>
                     </el-form-item>
@@ -101,6 +104,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { taskApplyStore } from "@/components/views/gather/task-apply/Controller/taskApplyStore.ts";
 import { storeToRefs } from "pinia";
 import { Plus, Minus } from '@element-plus/icons-vue';
@@ -109,6 +113,7 @@ import { ElMessage } from 'element-plus';
 const store = taskApplyStore();
 const { taskApplyModel } = storeToRefs(store);
 const formRef = ref(null);
+const router = useRouter();
 
 onMounted(() => {
     store.initClass();
@@ -140,6 +145,12 @@ const removeField = (index) => {
     }
 }
 
+const handleTableNameInput = (val) => {
+    if (taskApplyModel.value) {
+        taskApplyModel.value.taskForm.taskTableName = val.toUpperCase().replace(/[^A-Z]/g, '');
+    }
+}
+
 const handleDicChange = (field, dicid) => {
     const isSelect = field.type === 'select';
     const dics = isSelect ? taskApplyModel.value.allSelectdics : taskApplyModel.value.allTreedics;
@@ -166,7 +177,10 @@ const submit = async () => {
                 ElMessage.error('请登录');
                 return;
             }
-            await taskApplyModel.value.submitTask(uid);
+            const success = await taskApplyModel.value.submitTask(uid);
+            if (success) {
+                router.push({ name: 'task-approval' });
+            }
         }
     })
 }

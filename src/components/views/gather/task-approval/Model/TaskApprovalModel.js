@@ -91,12 +91,15 @@ export default class TaskApprovalModel {
                 ElMessage.success('任务授权成功！');
                 await this.findGatherTask();
                 this.activeNames = [];
+                return true;
             } else {
                 ElMessage.error('授权失败：' + (response[0].message || '服务异常'));
+                return false;
             }
         } catch (error) {
             console.error(error);
             ElMessage.error('授权执行异常');
+            return false;
         }
     }
 
@@ -114,12 +117,15 @@ export default class TaskApprovalModel {
                 ElMessage.success('任务否决成功！');
                 await this.findGatherTask();
                 this.activeNames = [];
+                return true;
             } else {
                 ElMessage.error('否决操作失败');
+                return false;
             }
         } catch (error) {
             console.error(error);
             ElMessage.error('否决执行异常');
+            return false;
         }
     }
 }

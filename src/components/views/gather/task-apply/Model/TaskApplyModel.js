@@ -119,7 +119,7 @@ class TaskApplyModel {
         }
 
         // 4. Check if table exists
-        await this.findTableByTableName(loginUserid);
+        return await this.findTableByTableName(loginUserid);
     }
 
     async findTableByTableName(loginUserid) {
@@ -145,15 +145,18 @@ class TaskApplyModel {
                 var result = res[0].objects;
                 if (result.length > 0) {
                     ElMessage.error('该表已存在，请修改存储表名！');
+                    return false;
                 } else {
-                    await this.createTaskApply(loginUserid);
+                    return await this.createTaskApply(loginUserid);
                 }
             } else {
                 ElMessage.error('服务异常请联系管理人员！');
+                return false;
             }
         } catch (error) {
             ElMessage.error('服务异常请联系管理人员！');
             console.error(error);
+            return false;
         }
     }
 
@@ -198,15 +201,19 @@ class TaskApplyModel {
                     this.fieldDataForm.fileds = [];
                     this.layerImage = "";
                     // Reset styling if needed handled in view
+                    return true;
                 } else {
                     ElMessage.error(res[0].message || '服务异常请联系管理人员！');
+                    return false;
                 }
             } else {
                 ElMessage.error('服务异常请联系管理人员！');
+                return false;
             }
         } catch (error) {
             ElMessage.error('服务异常请联系管理人员！');
             console.error(error);
+            return false;
         }
     }
 

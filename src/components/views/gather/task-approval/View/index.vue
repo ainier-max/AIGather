@@ -53,7 +53,7 @@
 
                                 <div style="display: flex; justify-content: center; gap: 16px; margin: 20px 0;">
                                     <el-button type="primary" :icon="Check"
-                                        @click="taskApprovalModel.taskApproval(item)">确认授权</el-button>
+                                        @click="handleApproval(item)">确认授权</el-button>
                                     <el-button type="danger" plain :icon="Close"
                                         @click="taskApprovalModel.taskRefuse(item.id)">否决申请</el-button>
                                 </div>
@@ -90,12 +90,21 @@
 
 <script setup>
 import { onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { taskApprovalStore } from "@/components/views/gather/task-approval/Controller/taskApprovalStore.ts";
 import { storeToRefs } from "pinia";
 import { Stamp, Check, Close, Warning } from '@element-plus/icons-vue';
 
 const store = taskApprovalStore();
 const { taskApprovalModel } = storeToRefs(store);
+const router = useRouter();
+
+const handleApproval = async (item) => {
+    const success = await taskApprovalModel.value.taskApproval(item);
+    if (success) {
+        router.push({ name: 'task-distribution' });
+    }
+}
 
 onMounted(() => {
     store.initClass();
