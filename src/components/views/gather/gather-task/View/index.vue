@@ -70,7 +70,6 @@ const getTypeTag = (type) => {
         case 'polyline': return 'success';
         case 'polygon': return 'warning';
         case 'none': return 'info';
-        case 'absence': return 'info';
         default: return '';
     }
 };

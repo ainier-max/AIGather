@@ -11,7 +11,7 @@
           <span v-if="data.taskid != null">
             <i v-if="data.type.includes('polyline')" :style="data.colorStyle" class="el-icon-share"></i>
             <i v-if="data.type.includes('polygon')" :style="data.colorStyle" class="el-icon-house"></i>
-            <i v-if="data.type.includes('absence')" class="el-icon-tickets"></i>
+            <i v-if="data.type.includes('none')" class="el-icon-tickets"></i>
             <el-image v-if="data.type.includes('point')" style="width: 14px;height: 14px"
               :src="data.layerimg"></el-image>
             {{ node.label }}
@@ -355,7 +355,7 @@ export default {
         console.log("颜色图层");
         this.layerimg = "";
         this.layerColor = node.color;
-      } else if (node.type == "absence") {
+      } else if (node.type == "none") {
         this.layerimg = "";
         this.layerColor = "";
       }

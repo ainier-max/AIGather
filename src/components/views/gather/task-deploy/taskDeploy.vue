@@ -8,44 +8,25 @@
       <div style="color:red;padding-bottom: 10px">
         <span>注：点击</span>
         <i class="el-icon-upload2"
-           style="color:cornflowerblue;cursor:pointer;padding-left:10px;padding-right: 10px;"></i>
+          style="color:cornflowerblue;cursor:pointer;padding-left:10px;padding-right: 10px;"></i>
         <span>可将采集任务放置右边的图层树中</span>
       </div>
-      <el-table
-        :data="gatherTaskData"
-        border
-        height="70%"
-        style="width: 100%;">
-        <el-table-column
-          prop="cjsj"
-          label="创建日期"
-          width="100">
+      <el-table :data="gatherTaskData" border height="70%" style="width: 100%;">
+        <el-table-column prop="cjsj" label="创建日期" width="100">
         </el-table-column>
-        <el-table-column
-          prop="name"
-          label="任务名">
+        <el-table-column prop="name" label="任务名">
         </el-table-column>
-        <el-table-column
-          prop="table_name"
-          label="表名"
-          width="150">
+        <el-table-column prop="table_name" label="表名" width="150">
         </el-table-column>
-        <el-table-column
-          prop="type"
-          label="类型"
-          width="100">
+        <el-table-column prop="type" label="类型" width="100">
         </el-table-column>
 
-        <el-table-column
-          fixed="right"
-          label="操作"
-          width="80">
+        <el-table-column fixed="right" label="操作" width="80">
           <template slot-scope="scope">
             <i class="el-icon-upload2" style="color:cornflowerblue;cursor:pointer;padding-left:10px;padding-right: 10px"
-               @click="taskDeploy(scope.row)"></i>
+              @click="taskDeploy(scope.row)"></i>
 
-            <i class="el-icon-delete" style="color:red;cursor:pointer"
-               @click="showDeleteGatherTaskWin(scope.row)"></i>
+            <i class="el-icon-delete" style="color:red;cursor:pointer" @click="showDeleteGatherTaskWin(scope.row)"></i>
           </template>
         </el-table-column>
       </el-table>
@@ -56,52 +37,33 @@
       <el-divider content-position="left" style="margin-left:50px"><span style="font-size: 18px">图层树</span>
       </el-divider>
 
-      <el-tree
-        ref="layerTree"
-        :data="gatherTaskTreeData"
-        @node-click="handleNodeClick"
-        node-key="id"
-        class="down-tree"
-        default-expand-all
-        :highlight-current="true"
-        :expand-on-click-node="false">
-      <span class="custom-tree-node" slot-scope="{ node, data }">
-        <span v-if="data.taskid==null"><i class="el-icon-folder"></i>{{ node.label }}</span>
-        <span v-if="data.taskid!=null">
-          <i v-if="data.type.includes('polyline')" :style="data.colorStyle" class="el-icon-share"></i>
-          <i v-if="data.type.includes('polygon')" :style="data.colorStyle" class="el-icon-house"></i>
-          <i v-if="data.type.includes('absence')" class="el-icon-tickets"></i>
-          <el-image v-if="data.type.includes('point')" style="width: 14px;height: 14px" :src="data.layerimg"></el-image>
-          {{ node.label }}
+      <el-tree ref="layerTree" :data="gatherTaskTreeData" @node-click="handleNodeClick" node-key="id" class="down-tree"
+        default-expand-all :highlight-current="true" :expand-on-click-node="false">
+        <span class="custom-tree-node" slot-scope="{ node, data }">
+          <span v-if="data.taskid == null"><i class="el-icon-folder"></i>{{ node.label }}</span>
+          <span v-if="data.taskid != null">
+            <i v-if="data.type.includes('polyline')" :style="data.colorStyle" class="el-icon-share"></i>
+            <i v-if="data.type.includes('polygon')" :style="data.colorStyle" class="el-icon-house"></i>
+            <i v-if="data.type.includes('none')" class="el-icon-tickets"></i>
+            <el-image v-if="data.type.includes('point')" style="width: 14px;height: 14px"
+              :src="data.layerimg"></el-image>
+            {{ node.label }}
+          </span>
+          <span>
+            <i v-if="data.taskid == null" type="text" size="mini" style="color: blueviolet" @click="() => append(data)"
+              class="el-icon-circle-plus-outline"></i>
+            <i v-if="data.taskid == null" type="text" size="mini" style="color: blueviolet" @click="() => edit(data)"
+              class="el-icon-edit"></i>
+            <i type="text" size="mini" style="color: blueviolet" @click="() => remove(node, data)"
+              class="el-icon-delete"></i>
+          </span>
         </span>
-        <span>
-          <i v-if="data.taskid==null"
-             type="text"
-             size="mini"
-             style="color: blueviolet"
-             @click="() => append(data)" class="el-icon-circle-plus-outline"></i>
-          <i v-if="data.taskid==null"
-             type="text"
-             size="mini"
-             style="color: blueviolet"
-             @click="() => edit(data)" class="el-icon-edit"></i>
-          <i type="text"
-             size="mini"
-             style="color: blueviolet"
-             @click="() => remove(node, data)" class="el-icon-delete"></i>
-        </span>
-      </span>
       </el-tree>
 
     </div>
 
-    <el-dialog
-      :title="treeDialogTitle"
-      :visible.sync="dialogVisible"
-      :close-on-click-modal="false"
-      ref="upholdDialogRef"
-      width="30%"
-      :before-close="handleClose">
+    <el-dialog :title="treeDialogTitle" :visible.sync="dialogVisible" :close-on-click-modal="false"
+      ref="upholdDialogRef" width="30%" :before-close="handleClose">
       <el-form :model="treeDicDataForm" :rules="treeDicrules" ref="treeDicDataForm" label-width="100px">
         <el-form-item label="树节点标签" prop="treems">
           <el-input v-model="treeDicDataForm.treems" placeholder="树节点标签"></el-input>
@@ -109,17 +71,13 @@
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="handleCancle">取 消</el-button>
-        <el-button v-if="editFlag==0" type="primary" @click="addTreeDicData">确 定</el-button>
-        <el-button v-if="editFlag==1" type="primary" @click="editTreeDicData">确 定</el-button>
+        <el-button v-if="editFlag == 0" type="primary" @click="addTreeDicData">确 定</el-button>
+        <el-button v-if="editFlag == 1" type="primary" @click="editTreeDicData">确 定</el-button>
       </span>
     </el-dialog>
 
 
-    <el-dialog
-      title="确认框"
-      :visible.sync="deleteTreeDataDialogVisible"
-      :close-on-click-modal="false"
-      width="30%"
+    <el-dialog title="确认框" :visible.sync="deleteTreeDataDialogVisible" :close-on-click-modal="false" width="30%"
       :before-close="handleClose">
       <span style="color:red">将要删除( {{ currentTreeLabel }} )与其所属的所有选项？</span>
       <span slot="footer" class="dialog-footer">
@@ -129,12 +87,8 @@
     </el-dialog>
 
 
-    <el-dialog
-      title="确认框"
-      :visible.sync="deleteGatherTaskDialogVisible"
-      :close-on-click-modal="false"
-      width="30%">
-      将要删除<span style="color:red;font-weight: bold">({{opGatherTask.name}})</span>采集任务
+    <el-dialog title="确认框" :visible.sync="deleteGatherTaskDialogVisible" :close-on-click-modal="false" width="30%">
+      将要删除<span style="color:red;font-weight: bold">({{ opGatherTask.name }})</span>采集任务
       <br></br>该操作也会把图层树中的对应图层删除，数据不可恢复，请小心操作。
       <span slot="footer" class="dialog-footer">
         <el-button @click="deleteGatherTaskCancle">取 消</el-button>
@@ -147,8 +101,8 @@
 </template>
 
 <script>
-import {commonSelectRequest, commonExcuteRequest} from "../common/request"
-import {getListData} from "../common/tree"
+import { commonSelectRequest, commonExcuteRequest } from "../common/request"
+import { getListData } from "../common/tree"
 
 export default {
   data() {
@@ -162,7 +116,7 @@ export default {
       },
       treeDicrules: {
         treems: [
-          {required: true, message: '树节点标签不能为空', trigger: 'blur'}
+          { required: true, message: '树节点标签不能为空', trigger: 'blur' }
         ],
       },
       editFlag: 0,
@@ -172,8 +126,8 @@ export default {
       deleteIDS: [],
       currentNodeKey: 1,//初始选中图层树菜单
       deleteGatherTaskDialogVisible: false,
-      opGatherTask:{},
-      opGatherTaskCount:0
+      opGatherTask: {},
+      opGatherTaskCount: 0
     };
   },
   watch: {},
@@ -238,7 +192,7 @@ export default {
       commonSelectRequest(param, this.taskDeployCallBack);
     },
     taskDeployCallBack(result) {
-      this.$message({message: '成功添加图层！', type: 'success'});
+      this.$message({ message: '成功添加图层！', type: 'success' });
       this.findGatherTaskTree(this.currentNodeKey);
     },
     append(data) {
@@ -262,7 +216,7 @@ export default {
       });
     },
     addTreeDicDataCallBack(result) {
-      this.$message({message: '成功增加树菜单！', type: 'success'});
+      this.$message({ message: '成功增加树菜单！', type: 'success' });
       this.treeDicDataForm.treems = '';
       this.findGatherTaskTree();
       this.dialogVisible = false;
@@ -293,7 +247,7 @@ export default {
       });
     },
     editTreeDicDataCallBack(result) {
-      this.$message({message: '成功修改树菜单！', type: 'success'});
+      this.$message({ message: '成功修改树菜单！', type: 'success' });
       this.treeDicDataForm.treems = '';
       this.findGatherTaskTree();
       this.dialogVisible = false;
@@ -319,7 +273,7 @@ export default {
     },
     deleteTreeDataCallBack(result) {
       this.currentNodeKey = 1;
-      this.$message({message: '成功删除图层树数据！', type: 'success'});
+      this.$message({ message: '成功删除图层树数据！', type: 'success' });
       this.findGatherTaskTree();
       this.deleteTreeDataDialogVisible = false;
     },
@@ -357,15 +311,15 @@ export default {
     },
 
     showDeleteGatherTaskWin(row) {
-      console.log("row",row);
-      this.opGatherTask=row;
+      console.log("row", row);
+      this.opGatherTask = row;
       var param = {};
       param.sql = "gather_task.gatherTaskCount";
-      param.table_name=this.opGatherTask.table_name;
+      param.table_name = this.opGatherTask.table_name;
       commonSelectRequest(param, this.gatherTaskCountCallBack);
     },
-    gatherTaskCountCallBack(result){
-      this.opGatherTaskCount=result[0].SUM_COUNT;
+    gatherTaskCountCallBack(result) {
+      this.opGatherTaskCount = result[0].SUM_COUNT;
       //console.log("this.opGatherTaskCount:",this.opGatherTaskCount);
       this.deleteGatherTaskDialogVisible = true;
     },
@@ -373,21 +327,21 @@ export default {
       this.deleteGatherTaskDialogVisible = false;
     },
     deleteGatherTask() {
-      if(this.opGatherTaskCount>0){
+      if (this.opGatherTaskCount > 0) {
         this.$message.error("该采集任务在数据里存在数据，不可删除！请手动清空数据在进行删除！");
         this.deleteGatherTaskDialogVisible = false;
         return;
-      }else{
+      } else {
         var param = {};
         param.sql = "gather_task.deleteGatherTask";
-        param.table_name=this.opGatherTask.table_name;
-        param.id=this.opGatherTask.id;
-        console.log("param:",param);
+        param.table_name = this.opGatherTask.table_name;
+        param.id = this.opGatherTask.id;
+        console.log("param:", param);
         commonExcuteRequest(param, this.deleteGatherTaskCallBack);
       }
     },
-    deleteGatherTaskCallBack(result){
-      this.$message({message: '成功删除采集任务！', type: 'success'});
+    deleteGatherTaskCallBack(result) {
+      this.$message({ message: '成功删除采集任务！', type: 'success' });
       this.deleteGatherTaskDialogVisible = false;
       this.findGatherTask();
       this.findGatherTaskTree();

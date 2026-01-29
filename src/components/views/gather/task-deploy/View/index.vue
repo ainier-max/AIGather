@@ -76,7 +76,7 @@
                                         <el-icon v-else-if="data.type.includes('polygon')" :style="data.colorStyle">
                                             <House />
                                         </el-icon>
-                                        <el-icon v-else-if="data.type.includes('absence')" color="#94a3b8">
+                                        <el-icon v-else-if="data.type.includes('none')" color="#94a3b8">
                                             <Memo />
                                         </el-icon>
                                         <el-image v-else-if="data.type.includes('point')"
