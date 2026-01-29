@@ -35,7 +35,7 @@ export default class GatherTaskModel {
      */
     gather(row) {
         router.push({
-            path: '/gather-page',
+            path: '/gather-page-map',
             query: {
                 taskid: row.taskid,
                 type: row.type

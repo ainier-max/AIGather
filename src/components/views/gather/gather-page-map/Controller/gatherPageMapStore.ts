@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia';
-import GatherPageModel from '../Model/GatherPageModel.js';
+import GatherPageModel from '../Model/GatherPageMapModel.js';
 import { ref } from 'vue';
 
 /**
- * gatherPageStore - 采集页面状态管理
+ * gatherPageMapStore - 采集页面状态管理
  * 负责初始化Model和管理地图相关状态
  */
-export const gatherPageStore = defineStore('gatherPage', () => {
+export const gatherPageStore = defineStore('gatherPageMap', () => {
     // 业务逻辑模型
     const gatherPageModel = ref<any>(null);
 

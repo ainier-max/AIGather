@@ -131,8 +131,8 @@ import { QuillEditor } from '@vueup/vue-quill';
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
 import commonApi from '@/api/common';
 import { storeToRefs } from 'pinia';
-import { gatherPageStore } from '@/components/views/gather/gather-page/Controller/gatherPageStore.ts';
-import FieldComponentModel from '@/components/views/gather/gather-page/Model/FieldComponentClass.js';
+import { gatherPageStore } from '@/components/views/gather/gather-page-map/Controller/gatherPageMapStore.ts';
+import FieldComponentModel from '@/components/views/gather/gather-page-map/Model/FieldComponentClass.js';
 
 const props = defineProps({
   field: {

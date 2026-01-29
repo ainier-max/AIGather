@@ -17,9 +17,9 @@ const routes = [
     component: () => import("@/components/views/gather/index.vue"),
     children: [
       {
-        name: "gather-page",
-        path: "/gather-page",
-        component: () => import("@/components/views/gather/gather-page/View/index.vue")
+        name: "gather-page-map",
+        path: "/gather-page-map",
+        component: () => import("@/components/views/gather/gather-page-map/View/index.vue")
       },
       {
         name: "gather-task",

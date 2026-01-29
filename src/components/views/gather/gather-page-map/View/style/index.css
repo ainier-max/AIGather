@@ -1,5 +1,5 @@
 /* 采集页面容器 */
-.gather-page-container {
+.gather-page-map-container {
   height: 100%;
   width: 100%;
   display: flex;
@@ -8,7 +8,7 @@
   box-sizing: border-box;
 }
 
-.gather-page-container * {
+.gather-page-map-container * {
   box-sizing: border-box;
 }
 
@@ -305,7 +305,7 @@
 }
 
 @media (max-width: 768px) {
-  .gather-page-container {
+  .gather-page-map-container {
     flex-direction: column;
   }
 

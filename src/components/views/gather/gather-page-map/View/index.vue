@@ -1,5 +1,5 @@
 <template>
-  <div class="gather-page-container" v-if="gatherPageModel">
+  <div class="gather-page-map-container" v-if="gatherPageModel">
     <!-- 左侧面板：字段表单 -->
     <div class="left-panel">
       <div v-if="gatherPageModel.gatherButtonFlag" class="gather-button-container">
@@ -158,7 +158,7 @@
 import { ref, computed, onMounted, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
-import { gatherPageStore } from '../Controller/gatherPageStore.ts';
+import { gatherPageStore } from '../Controller/gatherPageMapStore.ts';
 import MapComponent from './components/MapComponent.vue';
 import FieldComponent from './components/FieldComponent.vue';
 import { ElMessage, ElMessageBox } from 'element-plus';

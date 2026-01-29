@@ -5,7 +5,7 @@ import { ElMessage } from "element-plus";
  * GatherPageModel - 采集页面业务逻辑模型
  * 负责数据采集、编辑、查询等业务逻辑
  */
-export default class GatherPageModel {
+export default class GatherPageMapModel {
   constructor() {
     // 采集任务对象
     this.gatherTaskObj = {};
