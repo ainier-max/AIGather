@@ -101,10 +101,24 @@
 }
 
 .audio-list-popover,
-.video-list-popover {
+.video-list-popover,
+.rich-list-popover-content {
     padding: 10px 5px;
     max-height: 400px;
     overflow-y: auto;
+}
+
+.rich-preview-window {
+    padding: 10px;
+    background: #fff;
+    border-radius: 4px;
+    color: #334155;
+    line-height: 1.6;
+}
+
+.rich-preview-window :deep(img) {
+    max-width: 100%;
+    height: auto;
 }
 
 .audio-list-popover audio::-webkit-media-controls-enclosure {

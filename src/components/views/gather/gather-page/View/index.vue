@@ -17,8 +17,8 @@
 
                 <!-- 动态生成列 -->
                 <el-table-column v-for="field in displayFields" :key="field.field_name" :prop="field.field_name"
-                    :label="field.field_dec" :width="['photo', 'video', 'audio'].includes(field.field_type) ? 120 : ''"
-                    align="center">
+                    :label="field.field_dec"
+                    :width="['photo', 'video', 'audio', 'rich'].includes(field.field_type) ? 120 : ''" align="center">
                     <template #default="{ row }">
                         <!-- 照片展示 -->
                         <div v-if="field.field_type === 'photo' && row[field.field_name]" class="table-media-preview">
@@ -59,6 +59,19 @@
                                         style="width: 100%; margin-bottom: 5px; border-radius: 4px;">
                                         <source :src="commonApi.getFileUrl(uuid, 'video')" type="video/mp4">
                                     </video>
+                                </div>
+                            </el-popover>
+                        </div>
+
+                        <!-- 富文本展示 -->
+                        <div v-else-if="field.field_type === 'rich' && row[field.field_name]"
+                            class="table-media-preview">
+                            <el-popover placement="top" :width="600" trigger="hover">
+                                <template #reference>
+                                    <el-button type="success" :icon="Document" circle size="small" />
+                                </template>
+                                <div class="rich-list-popover-content">
+                                    <div class="rich-preview-window" v-html="row[field.field_name]"></div>
                                 </div>
                             </el-popover>
                         </div>
@@ -116,7 +129,7 @@ import { useRoute } from 'vue-router';
 import { storeToRefs } from "pinia";
 import { gatherPageStore } from "../Controller/gatherPageStore.ts";
 import FieldComponent from "./components/FieldComponent.vue";
-import { Plus, EditPen, Check, VideoCamera, Headset, Picture } from '@element-plus/icons-vue';
+import { Plus, EditPen, Check, VideoCamera, Headset, Picture, Document } from '@element-plus/icons-vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import commonApi from '@/api/common';
 
