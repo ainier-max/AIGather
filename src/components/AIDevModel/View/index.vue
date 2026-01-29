@@ -7,6 +7,8 @@
         <el-button @click="toClick">改变</el-button>
     </div>
 
+    <div class="twoClass"></div>
+
 </template>
 <script setup>
 import { storeToRefs } from "pinia";
