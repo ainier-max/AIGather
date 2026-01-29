@@ -16,5 +16,32 @@ export default {
             data
         });
     },
-
+    //文件上传接口
+    uploadFile(data) {
+        return request({
+            url: "/cbc/upload.cbc",
+            method: "post",
+            data
+        });
+    },
+    //文件删除接口
+    deleteFile(data) {
+        return request({
+            url: "/cbc/deleteFile.cbc",
+            method: "post",
+            data
+        });
+    },
+    //获取文件URL
+    getFileUrl(uuid, type) {
+        return `/cbc/getFile.cbc?uuid=${uuid}&type=${type}`;
+    },
+    //获取客户端IP
+    getClientIP(query) {
+        return request({
+            url: `/cbc/getClientIP.cbc`,
+            method: 'get',
+            params: query
+        })
+    }
 }

@@ -20,7 +20,6 @@
                             </span>
                             <template #dropdown>
                                 <el-dropdown-menu>
-                                    <el-dropdown-item>我的资料</el-dropdown-item>
                                     <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
                                 </el-dropdown-menu>
                             </template>
@@ -110,7 +109,7 @@ const userid = ref('');
 
 onMounted(() => {
     // 获取登录用户信息
-    userid.value = localStorage.getItem('userid') || 'Guest';
+    userid.value = localStorage.getItem('loginUserid') || 'Guest';
     if (!userid.value || userid.value === 'null') {
         // Commented out as requested
         // router.push('/'); 
@@ -124,9 +123,9 @@ const handleCommand = (command) => {
             cancelButtonText: '取消',
             type: 'warning',
         }).then(() => {
-            localStorage.setItem('userid', '');
-            // router.push('/');
-            ElMessage.success('已退出登录 (路由跳转已屏蔽)');
+            localStorage.setItem('loginUserid', '');
+            router.push('/');
+            ElMessage.success('已退出登录');
         }).catch(() => { });
     }
 };

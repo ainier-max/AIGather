@@ -161,7 +161,7 @@ const submit = async () => {
     if (!formRef.value) return;
     await formRef.value.validate(async (valid) => {
         if (valid) {
-            const uid = localStorage.getItem('userid');
+            const uid = localStorage.getItem('loginUserid');
             if (!uid) {
                 ElMessage.error('请登录');
                 return;

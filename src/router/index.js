@@ -17,6 +17,11 @@ const routes = [
     component: () => import("@/components/views/gather/index.vue"),
     children: [
       {
+        name: "gather-page",
+        path: "/gather-page",
+        component: () => import("@/components/views/gather/gather-page/View/index.vue")
+      },
+      {
         name: "gather-task",
         path: "/gather-task",
         component: () => import("@/components/views/gather/gather-task/View/index.vue")
@@ -62,6 +67,8 @@ const routes = [
         path: "/tree-dic",
         component: () => import("@/components/views/gather/tree-dic/View/index.vue")
       },
+
+
 
 
 

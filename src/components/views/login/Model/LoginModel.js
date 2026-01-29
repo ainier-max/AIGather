@@ -22,7 +22,19 @@ class LoginModel {
             const data = res[0];
             if (data && data.objects && data.objects.length > 0) {
                 // 保存用户信息
-                localStorage.setItem('userid', data.objects[0].userid || data.objects[0].id);
+                const userid = data.objects[0].userid || data.objects[0].id;
+                localStorage.setItem('loginUserid', userid);
+
+                // 获取客户端IP
+                try {
+                    const ipRes = await commonApi.getClientIP({});
+                    console.log("ipRes", ipRes);
+                    localStorage.setItem('clientIP', ipRes[0].ip);
+                } catch (e) {
+                    console.error('获取IP失败-e', e);
+                    localStorage.setItem('clientIP', '');
+                }
+
                 return { success: true, user: data.objects[0] };
             } else {
                 return { success: false, message: '请检查账号密码！' };

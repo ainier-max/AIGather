@@ -6,12 +6,14 @@
     "build": "vite build"
   },
   "dependencies": {
+    "@vueup/vue-quill": "^1.2.0",
     "axios": "^1.13.2",
     "echarts": "^6.0.0",
     "element-plus": "^2.12.0",
     "graphology": "^0.26.0",
     "lodash": "^4.17.21",
     "node-sass": "^9.0.0",
+    "ol": "^10.6.1",
     "pinia": "^2.1.7",
     "sass-loader": "^16.0.5",
     "sigma": "^3.0.2",
