@@ -22,10 +22,13 @@
                     <template #default="{ row }">
                         <!-- 照片展示 -->
                         <div v-if="field.field_type === 'photo' && row[field.field_name]" class="table-media-preview">
-                            <el-image style="width: 50px; height: 50px; border-radius: 4px;"
-                                :src="commonApi.getFileUrl(row[field.field_name].split(',')[0], 'photo')"
-                                :preview-src-list="row[field.field_name].split(',').map(uuid => commonApi.getFileUrl(uuid, 'photo'))"
-                                preview-teleported fit="cover" />
+                            <div class="media-icon-wrapper">
+                                <el-button type="primary" :icon="Picture" circle size="small" />
+                                <el-image class="hidden-preview-trigger"
+                                    :src="commonApi.getFileUrl(row[field.field_name].split(',')[0], 'photo')"
+                                    :preview-src-list="row[field.field_name].split(',').map(uuid => commonApi.getFileUrl(uuid, 'photo'))"
+                                    preview-teleported fit="cover" />
+                            </div>
                         </div>
 
                         <!-- 音频展示 -->
@@ -113,7 +116,7 @@ import { useRoute } from 'vue-router';
 import { storeToRefs } from "pinia";
 import { gatherPageStore } from "../Controller/gatherPageStore.ts";
 import FieldComponent from "./components/FieldComponent.vue";
-import { Plus, EditPen, Check, VideoCamera, Headset } from '@element-plus/icons-vue';
+import { Plus, EditPen, Check, VideoCamera, Headset, Picture } from '@element-plus/icons-vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import commonApi from '@/api/common';
 
