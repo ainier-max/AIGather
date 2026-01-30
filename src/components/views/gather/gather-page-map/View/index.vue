@@ -41,7 +41,7 @@
               暂无数据
             </div>
             <div v-for="(item, index) in paginatedData" :key="index" class="list-card"
-              @click="handleItemClick(item.original)">
+              @click="handleItemClick(item.original)" @contextmenu.prevent="handleContextMenu($event, item.original)">
               <div class="card-header">
                 <div class="index-badge">{{ (currentPage - 1) * pageSize + index + 1 }}:</div>
                 <div class="card-title">
@@ -61,6 +61,23 @@
           <el-pagination small layout="total, sizes, prev, pager, next" :page-sizes="[5, 10, 20]" :total="totalItems"
             v-model:current-page="currentPage" v-model:page-size="pageSize" @size-change="handleSizeChange"
             @current-change="handlePageChange" />
+        </div>
+      </div>
+
+      <!-- 右键菜单 -->
+      <div v-show="contextMenuVisible" class="context-menu"
+        :style="{ top: contextMenuY + 'px', left: contextMenuX + 'px' }">
+        <div class="context-menu-item" @click="handleContextEdit">
+          <el-icon>
+            <Edit />
+          </el-icon>
+          <span>修改</span>
+        </div>
+        <div class="context-menu-item" @click="handleContextDelete">
+          <el-icon>
+            <Delete />
+          </el-icon>
+          <span>删除</span>
         </div>
       </div>
     </div>
@@ -130,6 +147,7 @@ import { gatherPageStore } from '../Controller/gatherPageMapStore.ts';
 import MapComponent from './components/MapComponent.vue';
 import FieldComponent from './components/FieldComponent.vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { Edit, Delete } from '@element-plus/icons-vue';
 
 const route = useRoute();
 const store = gatherPageStore();
@@ -145,6 +163,12 @@ const fieldRefs = ref({});
 // 分页相关
 const currentPage = ref(1);
 const pageSize = ref(5);
+
+// 右键菜单相关
+const contextMenuVisible = ref(false);
+const contextMenuX = ref(0);
+const contextMenuY = ref(0);
+const contextMenuItem = ref(null);
 
 // 当前绘制的几何对象
 let currentDrawnGeometry = null;
@@ -212,6 +236,11 @@ onMounted(async () => {
       await gatherPageModel.value.findGatherLayerImg(taskid);
     }
   }
+
+  // 添加全局点击事件监听器，点击任意位置关闭右键菜单
+  document.addEventListener('click', () => {
+    contextMenuVisible.value = false;
+  });
 });
 
 /**
@@ -452,6 +481,114 @@ function handlePageChange(page) {
 function handleSizeChange(size) {
   pageSize.value = size;
   currentPage.value = 1; // 重置到第一页
+}
+
+/**
+ * 显示右键菜单
+ */
+function handleContextMenu(event, item) {
+  event.stopPropagation();
+  contextMenuItem.value = item;
+  contextMenuX.value = event.clientX;
+  contextMenuY.value = event.clientY;
+  contextMenuVisible.value = true;
+}
+
+/**
+ * 右键菜单 - 修改
+ */
+async function handleContextEdit() {
+  contextMenuVisible.value = false;
+  if (!contextMenuItem.value) return;
+
+  // 查询详细数据
+  const data = await gatherPageModel.value.findGatherLayerById(contextMenuItem.value.gatherID);
+  if (!data) return;
+
+  // 清空地图
+  clearMap();
+
+  const type = gatherPageModel.value.gatherTaskObj.type;
+
+  // 在地图上显示要素（与handleItemClick类似）
+  if (type === 'point') {
+    const markerJSON = {
+      xy: [data.gather_zby, data.gather_zbx],
+      iconUrl: gatherPageModel.value.layerImg,
+      iconAnchor: [21, 42],
+      width: 42,
+      height: 42
+    };
+    mapRef.value.panTo([data.gather_zby, data.gather_zbx]);
+    const marker = mapRef.value.addMarker(markerJSON);
+    currentDrawnGeometry = marker;
+  } else if (type === 'polyline') {
+    const zbcTemp = [];
+    const xyArrTemp = data.gather_zbc.split(';');
+    for (let i = 0; i < xyArrTemp.length; i++) {
+      const xyTemp = xyArrTemp[i].split(',');
+      zbcTemp.push([xyTemp[0], xyTemp[1]]);
+    }
+    const polylineJSON = {
+      xys: zbcTemp,
+      option: {
+        weight: 5,
+        color: gatherPageModel.value.gatherTaskObj.color
+      }
+    };
+    const polyline = mapRef.value.addPolyline(polylineJSON);
+    currentDrawnGeometry = polyline;
+    mapRef.value.fitFeature(polyline.feature);
+  } else if (type === 'polygon') {
+    const zbcTemp = [];
+    const xyArrTemp = data.gather_zbc.split(';');
+    for (let i = 0; i < xyArrTemp.length; i++) {
+      const xyTemp = xyArrTemp[i].split(',');
+      zbcTemp.push([xyTemp[0], xyTemp[1]]);
+    }
+    const polygonJSON = {
+      xys: zbcTemp,
+      option: {
+        weight: 5,
+        color: gatherPageModel.value.gatherTaskObj.color
+      }
+    };
+    const polygon = mapRef.value.addPolygon(polygonJSON);
+    currentDrawnGeometry = polygon;
+    mapRef.value.fitFeature(polygon.feature);
+  }
+
+  // 直接进入编辑模式
+  handleShowEditWin();
+}
+
+/**
+ * 右键菜单 - 删除
+ */
+async function handleContextDelete() {
+  contextMenuVisible.value = false;
+  if (!contextMenuItem.value) return;
+
+  ElMessageBox.confirm('确定要删除这条数据吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(async () => {
+    // 先查询数据以设置currentEditObj
+    await gatherPageModel.value.findGatherLayerById(contextMenuItem.value.gatherID);
+
+    const success = await gatherPageModel.value.deleteData();
+    if (success) {
+      clearMap();
+      // 重新加载数据
+      gatherPageModel.value.curPage = 1;
+      gatherPageModel.value.onePageShowData = [];
+      gatherPageModel.value.twoPageShowData = [];
+      await gatherPageModel.value.findGatherLayerByPage();
+    }
+  }).catch(() => {
+    // 用户取消删除
+  });
 }
 
 /**
