@@ -265,6 +265,12 @@
     z-index: 1;
 }
 
+/* Detail dialog descriptions label width */
+:deep(.el-descriptions__label) {
+    width: 100px !important;
+    min-width: 100px !important;
+}
+
 .pagination-wrapper {
     display: flex;
     justify-content: flex-end;
