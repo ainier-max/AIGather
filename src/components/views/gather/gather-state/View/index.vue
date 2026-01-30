@@ -227,7 +227,7 @@
 
                     <div class="pagination-wrapper" v-if="gatherStateModel.currentNode">
                         <el-pagination v-model:current-page="gatherStateModel.currentPage"
-                            v-model:page-size="gatherStateModel.pageSize" :page-sizes="[10, 20, 50, 100]"
+                            v-model:page-size="gatherStateModel.pageSize" :page-sizes="[5, 10, 20]"
                             layout="total, sizes, prev, pager, next, jumper" :total="gatherStateModel.total"
                             @size-change="handleSizeChange" @current-change="handlePageChange" />
                     </div>
