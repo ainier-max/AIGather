@@ -510,56 +510,85 @@ async function handleContextEdit() {
 
   const type = gatherPageModel.value.gatherTaskObj.type;
 
-  // 在地图上显示要素（与handleItemClick类似）
+  // 检查是否有坐标数据
+  let hasGeometry = false;
   if (type === 'point') {
-    const markerJSON = {
-      xy: [data.gather_zby, data.gather_zbx],
-      iconUrl: gatherPageModel.value.layerImg,
-      iconAnchor: [21, 42],
-      width: 42,
-      height: 42
-    };
-    mapRef.value.panTo([data.gather_zby, data.gather_zbx]);
-    const marker = mapRef.value.addMarker(markerJSON);
-    currentDrawnGeometry = marker;
-  } else if (type === 'polyline') {
-    const zbcTemp = [];
-    const xyArrTemp = data.gather_zbc.split(';');
-    for (let i = 0; i < xyArrTemp.length; i++) {
-      const xyTemp = xyArrTemp[i].split(',');
-      zbcTemp.push([xyTemp[0], xyTemp[1]]);
-    }
-    const polylineJSON = {
-      xys: zbcTemp,
-      option: {
-        weight: 5,
-        color: gatherPageModel.value.gatherTaskObj.color
-      }
-    };
-    const polyline = mapRef.value.addPolyline(polylineJSON);
-    currentDrawnGeometry = polyline;
-    mapRef.value.fitFeature(polyline.feature);
-  } else if (type === 'polygon') {
-    const zbcTemp = [];
-    const xyArrTemp = data.gather_zbc.split(';');
-    for (let i = 0; i < xyArrTemp.length; i++) {
-      const xyTemp = xyArrTemp[i].split(',');
-      zbcTemp.push([xyTemp[0], xyTemp[1]]);
-    }
-    const polygonJSON = {
-      xys: zbcTemp,
-      option: {
-        weight: 5,
-        color: gatherPageModel.value.gatherTaskObj.color
-      }
-    };
-    const polygon = mapRef.value.addPolygon(polygonJSON);
-    currentDrawnGeometry = polygon;
-    mapRef.value.fitFeature(polygon.feature);
+    hasGeometry = data.gather_zbx && data.gather_zby;
+  } else if (type === 'polyline' || type === 'polygon') {
+    hasGeometry = data.gather_zbc && data.gather_zbc.trim() !== '';
   }
 
-  // 直接进入编辑模式
-  handleShowEditWin();
+  if (hasGeometry) {
+    // 有坐标数据：在地图上显示并进入编辑状态
+    if (type === 'point') {
+      const markerJSON = {
+        xy: [data.gather_zby, data.gather_zbx],
+        iconUrl: gatherPageModel.value.layerImg,
+        iconAnchor: [21, 42],
+        width: 42,
+        height: 42
+      };
+      mapRef.value.panTo([data.gather_zby, data.gather_zbx]);
+      const marker = mapRef.value.addMarker(markerJSON);
+      currentDrawnGeometry = marker;
+    } else if (type === 'polyline') {
+      const zbcTemp = [];
+      const xyArrTemp = data.gather_zbc.split(';');
+      for (let i = 0; i < xyArrTemp.length; i++) {
+        const xyTemp = xyArrTemp[i].split(',');
+        if (xyTemp.length >= 2) {
+          zbcTemp.push([xyTemp[0], xyTemp[1]]);
+        }
+      }
+      if (zbcTemp.length > 0) {
+        const polylineJSON = {
+          xys: zbcTemp,
+          option: {
+            weight: 5,
+            color: gatherPageModel.value.gatherTaskObj.color
+          }
+        };
+        const polyline = mapRef.value.addPolyline(polylineJSON);
+        currentDrawnGeometry = polyline;
+        mapRef.value.fitFeature(polyline.feature);
+      }
+    } else if (type === 'polygon') {
+      const zbcTemp = [];
+      const xyArrTemp = data.gather_zbc.split(';');
+      for (let i = 0; i < xyArrTemp.length; i++) {
+        const xyTemp = xyArrTemp[i].split(',');
+        if (xyTemp.length >= 2) {
+          zbcTemp.push([xyTemp[0], xyTemp[1]]);
+        }
+      }
+      if (zbcTemp.length >= 3) {
+        const polygonJSON = {
+          xys: zbcTemp,
+          option: {
+            weight: 5,
+            color: gatherPageModel.value.gatherTaskObj.color
+          }
+        };
+        const polygon = mapRef.value.addPolygon(polygonJSON);
+        currentDrawnGeometry = polygon;
+        mapRef.value.fitFeature(polygon.feature);
+      }
+    }
+
+    // 进入编辑状态（拖动/顶点编辑）
+    handleShowEditWin();
+  } else {
+    // 没有坐标数据：启用绘制功能重新采集
+    gatherPageModel.value.startEdit();
+
+    if (type === 'point') {
+      drawPoint();
+    } else if (type === 'polyline') {
+      drawPolyline();
+    } else if (type === 'polygon') {
+      drawPolygon();
+    }
+  }
 }
 
 /**
