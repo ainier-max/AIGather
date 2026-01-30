@@ -31,70 +31,38 @@
 
     <!-- 右侧面板：数据列表 -->
     <div class="right-panel">
-      <el-collapse v-model="gatherPageModel.activeNames">
-        <el-collapse-item :title="gatherPageModel.gatherTaskObj.name" name="1" class="task-collapse">
-          <div class="data-list-container" v-infinite-scroll="loadMore" :infinite-scroll-disabled="disabled"
-            :infinite-scroll-distance="10">
-
-            <!-- 空数据提示 -->
-            <div v-if="gatherPageModel.onePageShowData.length === 0 && !gatherPageModel.loading" class="empty-data">
-              <el-empty description="暂无数据" :image-size="100"></el-empty>
+      <div class="map-sidebar">
+        <div class="sidebar-header">
+          <span>{{ gatherPageModel.gatherTaskObj.name }}</span>
+        </div>
+        <div class="sidebar-list">
+          <el-scrollbar>
+            <div v-if="paginatedData.length === 0" class="empty-list">
+              暂无数据
             </div>
-
-            <!-- 数据列表 -->
-            <ul class="list" v-else>
-              <li v-for="(item, i) in gatherPageModel.onePageShowData" :key="i" class="list-item">
-                <el-divider content-position="left">
-                  <span class="item-title" @click="handleItemClick(item)">
-                    {{ i + 1 }}: {{ item.value }}
-                  </span>
-                </el-divider>
-                <div v-for="(field, j) in gatherPageModel.twoPageShowData[i]" :key="j">
-                  <!-- 照片 -->
-                  <div v-if="field.field_type === 'photo'" class="field-content">
-                    <span class="field-label">{{ field.dec }}:</span><br>
-                    <span v-for="(obj, k) in field.arrValue" :key="k">
-                      <img :src="obj" class="thumbnail-img">
-                    </span>
-                  </div>
-
-                  <!-- 视频 -->
-                  <div v-else-if="field.field_type === 'video'" class="field-content">
-                    <span class="field-label">{{ field.dec }}:</span><br>
-                    <div v-for="(obj, k) in field.arrValue" :key="k">
-                      <video :src="obj" style="width: 100px; height: 60px; background: #000;" controls></video>
-                    </div>
-                  </div>
-
-                  <!-- 音频 -->
-                  <div v-else-if="field.field_type === 'audio'" class="field-content">
-                    <span class="field-label">{{ field.dec }}:</span><br>
-                    <div v-for="(obj, k) in field.arrValue" :key="k">
-                      <audio :src="obj" style="width: 150px; height: 30px;" controls></audio>
-                    </div>
-                  </div>
-
-                  <!-- 富文本 -->
-                  <div v-else-if="field.field_type === 'rich'" class="field-content">
-                    <span class="field-label">{{ field.dec }}:</span><br>
-                    <span v-html="field.value"></span>
-                  </div>
-
-                  <!-- 其他字段 -->
-                  <div v-else class="field-content">
-                    <span class="field-label">{{ field.dec }}:</span><br>{{ field.value }}
-                  </div>
+            <div v-for="(item, index) in paginatedData" :key="index" class="list-card"
+              @click="handleItemClick(item.original)">
+              <div class="card-header">
+                <div class="index-badge">{{ (currentPage - 1) * pageSize + index + 1 }}:</div>
+                <div class="card-title">
+                  {{ item.title }}
                 </div>
-              </li>
-            </ul>
-
-            <p v-if="gatherPageModel.loading" class="loading-text">加载中...</p>
-            <el-divider v-if="noMore && gatherPageModel.onePageShowData.length > 0" content-position="center">
-              <span class="no-more-text">没有数据了</span>
-            </el-divider>
-          </div>
-        </el-collapse-item>
-      </el-collapse>
+              </div>
+              <div class="card-content">
+                <div v-for="field in item.bodyFields" :key="field.name" class="info-row">
+                  <span class="label">{{ field.label }}:</span>
+                  <span class="value">{{ field.value }}</span>
+                </div>
+              </div>
+            </div>
+          </el-scrollbar>
+        </div>
+        <div class="sidebar-pagination">
+          <el-pagination small layout="total, sizes, prev, pager, next" :page-sizes="[5, 10, 20]" :total="totalItems"
+            v-model:current-page="currentPage" v-model:page-size="pageSize" @size-change="handleSizeChange"
+            @current-change="handlePageChange" />
+        </div>
+      </div>
     </div>
 
     <!-- 气泡框内容 -->
@@ -174,16 +142,39 @@ const popupRef = ref(null);
 // 字段组件引用
 const fieldRefs = ref({});
 
+// 分页相关
+const currentPage = ref(1);
+const pageSize = ref(5);
+
 // 当前绘制的几何对象
 let currentDrawnGeometry = null;
 
-// 计算属性
-const disabled = computed(() => {
-  return gatherPageModel.value.loading || noMore.value;
+// 计算总数
+const totalItems = computed(() => {
+  return gatherPageModel.value.onePageShowData?.length || 0;
 });
 
-const noMore = computed(() => {
-  return gatherPageModel.value.noMoreFlag === 1;
+// 计算当前页数据
+const paginatedData = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value;
+  const end = start + pageSize.value;
+  const pageData = gatherPageModel.value.onePageShowData?.slice(start, end) || [];
+
+  // 转换数据格式为卡片样式
+  return pageData.map((item, index) => {
+    const globalIndex = start + index;
+    const bodyData = gatherPageModel.value.twoPageShowData?.[globalIndex] || [];
+
+    return {
+      original: item,
+      title: item.value || '无标题',
+      bodyFields: bodyData.map(field => ({
+        name: field.field_name || field.name,
+        label: field.dec || field.label,
+        value: field.value || '-'
+      }))
+    };
+  });
 });
 
 /**
@@ -449,10 +440,18 @@ function handleCancel() {
 }
 
 /**
- * 加载更多数据
+ * 分页页码改变
  */
-async function loadMore() {
-  await gatherPageModel.value.loadMore();
+function handlePageChange(page) {
+  currentPage.value = page;
+}
+
+/**
+ * 分页大小改变
+ */
+function handleSizeChange(size) {
+  pageSize.value = size;
+  currentPage.value = 1; // 重置到第一页
 }
 
 /**
