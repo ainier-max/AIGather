@@ -1,4 +1,5 @@
 import { findNodeById } from "@/components/views/gather/common/tree.js";
+import { cbcuuid } from "@/components/views/gather/common/uuid.js";
 import { ElMessage } from "element-plus";
 import { objectToString, stringToObject } from "@/components/views/gather/common/objStr.js";
 import commonApi from "@/api/common/index.js";
@@ -186,7 +187,7 @@ class GatherModel {
         } else {
             param.name_space = this.currentDataModelTreeNodeData.name_space;
         }
-        param.id = window.cbcuuid();
+        param.id = cbcuuid();
         param.pid = this.currentDataModelTreeNodeData.id;
         param.data_model_id = this.namespaceForm.data_model_id;
 

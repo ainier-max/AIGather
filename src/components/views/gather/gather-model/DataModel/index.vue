@@ -4,53 +4,32 @@
 
     <div class="contentClass">
       <div style="flex-basis: 25%">
-        <el-divider content-position="left"
-          ><span style="font-size: 18px">数据模型树</span>
+        <el-divider content-position="left"><span style="font-size: 18px">数据模型树</span>
         </el-divider>
 
-        <el-tree
-          ref="dataModelTreeRef"
-          :data="dataModelTreeData"
-          node-key="id"
-          :default-expand-all="false"
-          :expand-on-click-node="false"
-          :props="defaultProps"
-          :highlight-current="true"
-          :default-expanded-keys="[1]"
-          @node-click="handleNodeClick"
-          style="margin-left: 50px; height: 100%; overflow-y: auto"
-        >
+        <el-tree ref="dataModelTreeRef" :data="dataModelTreeData" node-key="id" :default-expand-all="false"
+          :expand-on-click-node="false" :props="defaultProps" :highlight-current="true" :default-expanded-keys="[1]"
+          @node-click="handleNodeClick" style="margin-left: 50px; height: 100%; overflow-y: auto">
           <template #default="{ node, data }">
             <span class="custom-tree-node">
-              <span
-                v-if="data.data_model_id == null || data.data_model_id == ''"
-              >
+              <span v-if="data.data_model_id == null || data.data_model_id == ''">
                 <Folder style="width: 1em; height: 1em" />
                 {{ node.label }}
                 <span v-if="data.name_space">({{ data.name_space }})</span>
               </span>
-              <span
-                v-if="data.data_model_id != null && data.data_model_id != ''"
-              >
+              <span v-if="data.data_model_id != null && data.data_model_id != ''">
                 {{ node.label }}({{ data.data_model_id }})
               </span>
               <span>
-                <Plus
-                  v-if="data.data_model_id == null || data.data_model_id == ''"
-                  style="
+                <Plus v-if="data.data_model_id == null || data.data_model_id == ''" style="
                     width: 1em;
                     height: 1em;
                     color: blueviolet;
                     margin-left: 8px;
-                  "
-                  @click="() => treeAppend(data)"
-                ></Plus>
+                  " @click="() => treeAppend(data)"></Plus>
 
-                <Delete
-                  v-if="data.id != 1"
-                  style="width: 1em; height: 1em; color: red; margin-left: 8px"
-                  @click="() => treeRemove(data)"
-                ></Delete>
+                <Delete v-if="data.id != 1" style="width: 1em; height: 1em; color: red; margin-left: 8px"
+                  @click="() => treeRemove(data)"></Delete>
               </span>
             </span>
           </template>
@@ -60,30 +39,17 @@
       <div style="flex-basis: 5%"></div>
 
       <div style="flex-basis: 70%; overflow: auto">
-        <el-form
-          v-if="
-            currentDataModelTreeNodeData &&
-            currentDataModelTreeNodeData.name_space &&
-            !currentDataModelTreeNodeData.data_model_id
-          "
-          :inline="true"
-          style="width: 100%; height: 100%"
-          label-width="120px"
-          :model="currentDataModelTreeNodeData"
-          class="demo-form-inline"
-        >
+        <el-form v-if="
+          currentDataModelTreeNodeData &&
+          currentDataModelTreeNodeData.name_space &&
+          !currentDataModelTreeNodeData.data_model_id
+        " :inline="true" style="width: 100%; height: 100%" label-width="120px" :model="currentDataModelTreeNodeData"
+          class="demo-form-inline">
           <el-form-item label="名称：">
-            <el-input
-              @input="labelInput"
-              v-model="currentDataModelTreeNodeData.label"
-              placeholder="label"
-            />
+            <el-input @input="labelInput" v-model="currentDataModelTreeNodeData.label" placeholder="label" />
           </el-form-item>
           <el-form-item label="命名空间：">
-            <el-input
-              v-model="currentDataModelTreeNodeData.name_space"
-              placeholder="name_space"
-            />
+            <el-input v-model="currentDataModelTreeNodeData.name_space" placeholder="name_space" />
           </el-form-item>
 
           <div align="center" style="padding-top: 10px">
@@ -91,36 +57,19 @@
           </div>
         </el-form>
 
-        <el-form
-          v-if="
-            currentDataModelTreeNodeData &&
-            currentDataModelTreeNodeData.data_model_id
-          "
-          :inline="true"
-          style="width: 100%; height: 100%"
-          label-width="120px"
-          :model="currentDataModelTreeNodeData"
-          class="demo-form-inline"
-        >
+        <el-form v-if="
+          currentDataModelTreeNodeData &&
+          currentDataModelTreeNodeData.data_model_id
+        " :inline="true" style="width: 100%; height: 100%" label-width="120px" :model="currentDataModelTreeNodeData"
+          class="demo-form-inline">
           <el-form-item label="命名空间：">
-            <el-input
-              v-model="currentDataModelTreeNodeData.name_space"
-              placeholder="label"
-              disabled
-            />
+            <el-input v-model="currentDataModelTreeNodeData.name_space" placeholder="label" disabled />
           </el-form-item>
           <el-form-item label="名称：">
-            <el-input
-              @input="labelInput"
-              v-model="currentDataModelTreeNodeData.label"
-              placeholder="label"
-            />
+            <el-input @input="labelInput" v-model="currentDataModelTreeNodeData.label" placeholder="label" />
           </el-form-item>
           <el-form-item label="模型类型： " style="width: 300px">
-            <el-select
-              v-model="currentDataModelTreeNodeData.data_model_type"
-              placeholder="data_model_type"
-            >
+            <el-select v-model="currentDataModelTreeNodeData.data_model_type" placeholder="data_model_type">
               <el-option label="select" value="select" />
               <el-option label="insert" value="insert" />
               <el-option label="update" value="update" />
@@ -128,20 +77,11 @@
             </el-select>
           </el-form-item>
           <el-form-item label="模型ID：">
-            <el-input
-              v-model="currentDataModelTreeNodeData.data_model_id"
-              placeholder="label"
-            />
+            <el-input v-model="currentDataModelTreeNodeData.data_model_id" placeholder="label" />
           </el-form-item>
-          <el-form-item
-            label="开启缓存： "
-            v-if="currentDataModelTreeNodeData.data_model_type == 'select'"
-            style="width: 200px"
-          >
-            <el-select
-              v-model="currentDataModelTreeNodeData.is_cache"
-              placeholder="data_model_type"
-            >
+          <el-form-item label="开启缓存： " v-if="currentDataModelTreeNodeData.data_model_type == 'select'"
+            style="width: 200px">
+            <el-select v-model="currentDataModelTreeNodeData.is_cache" placeholder="data_model_type">
               <el-option label="true" value="true" />
               <el-option label="false" value="false" />
             </el-select>
@@ -149,32 +89,16 @@
 
           <div>
             <div class="leftTitle" style="padding-bottom: 10px">
-              模型SQL（参考：<a
-                href="javascript:window.open('https://mybatis.net.cn/dynamic-sql.html')"
-                >MyBatis用法</a
-              >）<br />
+              模型SQL（参考：<a href="javascript:window.open('https://mybatis.net.cn/dynamic-sql.html')">MyBatis用法</a>）<br />
             </div>
-            <MyMonacoEditor
-              v-if="codeEditorFlag"
-              style="padding-left: 40px; width: 90%; height: 250px"
-              id="SQLCodeID"
-              :code="currentDataModelTreeNodeData.data_model_sql"
-              @update="updateSQLCodeConfig"
-            ></MyMonacoEditor>
+            <MyMonacoEditor v-if="codeEditorFlag" style="padding-left: 40px; width: 90%; height: 250px" id="SQLCodeID"
+              :code="currentDataModelTreeNodeData.data_model_sql" @update="updateSQLCodeConfig"></MyMonacoEditor>
 
-            <div
-              class="leftTitle"
-              style="padding-top: 10px; padding-bottom: 10px"
-            >
+            <div class="leftTitle" style="padding-top: 10px; padding-bottom: 10px">
               测试参数：
             </div>
-            <MyMonacoEditor
-              v-if="codeEditorFlag"
-              style="padding-left: 40px; width: 90%; height: 200px"
-              id="TestCodeID"
-              :code="currentDataModelTreeNodeData.data_model_param"
-              @update="updateTestCodeConfig"
-            ></MyMonacoEditor>
+            <MyMonacoEditor v-if="codeEditorFlag" style="padding-left: 40px; width: 90%; height: 200px" id="TestCodeID"
+              :code="currentDataModelTreeNodeData.data_model_param" @update="updateTestCodeConfig"></MyMonacoEditor>
           </div>
 
           <div align="center" style="padding-top: 10px">
@@ -188,53 +112,22 @@
     </div>
   </div>
 
-  <el-dialog
-    title="返回结果"
-    v-model="testSelectResultDialogVisible"
-    :close-on-click-modal="false"
-    width="60%"
-  >
-    <el-table
-      :data="tableData"
-      stripe
-      style="width: 100%; height: 500px; padding-top: 20px; padding-left: 40px"
-    >
-      <el-table-column
-        v-for="(item, i) in headerTableData"
-        :prop="item"
-        :label="item"
-      />
+  <el-dialog title="返回结果" v-model="testSelectResultDialogVisible" :close-on-click-modal="false" width="60%">
+    <el-table :data="tableData" stripe style="width: 100%; height: 500px; padding-top: 20px; padding-left: 40px">
+      <el-table-column v-for="(item, i) in headerTableData" :prop="item" :label="item" />
     </el-table>
   </el-dialog>
 
-  <el-dialog
-    title="添加节点"
-    v-model="addNameSpaceDialogVisible"
-    :close-on-click-modal="false"
-    width="30%"
-  >
-    <el-form
-      :model="namespaceForm"
-      label-width="120px"
-      style="padding-right: 50px"
-    >
+  <el-dialog title="添加节点" v-model="addNameSpaceDialogVisible" :close-on-click-modal="false" width="30%">
+    <el-form :model="namespaceForm" label-width="120px" style="padding-right: 50px">
       <el-form-item label="名称">
         <el-input v-model="namespaceForm.name" placeholder="name" />
       </el-form-item>
-      <el-form-item
-        label="命名空间"
-        v-if="!currentDataModelTreeNodeData?.name_space"
-      >
+      <el-form-item label="命名空间" v-if="!currentDataModelTreeNodeData?.name_space">
         <el-input v-model="namespaceForm.name_space" placeholder="name_space" />
       </el-form-item>
-      <el-form-item
-        label="模型ID"
-        v-if="currentDataModelTreeNodeData?.name_space"
-      >
-        <el-input
-          v-model="namespaceForm.data_model_id"
-          placeholder="data_model_id"
-        />
+      <el-form-item label="模型ID" v-if="currentDataModelTreeNodeData?.name_space">
+        <el-input v-model="namespaceForm.data_model_id" placeholder="data_model_id" />
       </el-form-item>
     </el-form>
     <div align="center" style="padding-top: 10px">
@@ -242,23 +135,14 @@
     </div>
   </el-dialog>
 
-  <el-dialog
-    title="确认框"
-    v-model="deleteNameSpaceDialogVisible"
-    :close-on-click-modal="false"
-    width="60%"
-  >
+  <el-dialog title="确认框" v-model="deleteNameSpaceDialogVisible" :close-on-click-modal="false" width="60%">
     <div v-if="!currentDataModelTreeNodeData?.data_model_id">
-      将要删除<span style="color: red; font-weight: bold"
-        >({{ currentDataModelTreeNodeData?.name }})</span
-      >
+      将要删除<span style="color: red; font-weight: bold">({{ currentDataModelTreeNodeData?.name }})</span>
       <br />该操作也会把对应的整个命名空间中的SQL进行删除，数据不可恢复，请小心操作。
     </div>
 
     <div v-if="currentDataModelTreeNodeData?.data_model_id">
-      将要删除<span style="color: red; font-weight: bold"
-        >({{ currentDataModelTreeNodeData?.name }})</span
-      >
+      将要删除<span style="color: red; font-weight: bold">({{ currentDataModelTreeNodeData?.name }})</span>
       <br />数据不可恢复，请小心操作。
     </div>
     <template #footer>
@@ -275,6 +159,7 @@ import { getListData, findNodeById } from "@/common/js/tree.js";
 import { ElMessage } from "element-plus";
 import { objectToString, stringToObject } from "@/common/js/objStr.js";
 import MyMonacoEditor from "@/common/component/CodeEditor/MyMonacoEditor/index.vue";
+import { uuid as cbcuuid } from "@/components/views/gather/common/uuid.js";
 
 import {
   commonExcuteRequest,
@@ -436,7 +321,7 @@ const addNameSpace = () => {
   } else {
     param.name_space = currentDataModelTreeNodeData.value.name_space;
   }
-  param.id = window.cbcuuid();
+  param.id = cbcuuid();
   param.pid = currentDataModelTreeNodeData.value.id;
   param.data_model_id = namespaceForm.value.data_model_id;
   //console.log("传参param",param);
@@ -534,17 +419,20 @@ const findByIDCallBack = (result) => {
   font-size: 14px;
   padding-right: 8px;
 }
+
 .leftTitle {
   padding-left: 38px;
   margin-top: 0px;
   color: #606266;
   font-size: 14px;
 }
+
 .rightValue {
   padding-top: 5px;
   padding-left: 15px;
   padding-right: 15px;
 }
+
 .titleClass {
   padding: 8px 16px;
   background-color: #fff6f7;
