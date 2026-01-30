@@ -240,6 +240,31 @@
     font-weight: 600;
 }
 
+/* Media preview styles */
+.table-media-preview {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.media-icon-wrapper {
+    position: relative;
+    width: 32px;
+    height: 32px;
+    display: inline-block;
+}
+
+.hidden-preview-trigger {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 1;
+}
+
 .pagination-wrapper {
     display: flex;
     justify-content: flex-end;
