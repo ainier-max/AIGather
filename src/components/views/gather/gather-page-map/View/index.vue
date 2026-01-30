@@ -319,16 +319,20 @@ function drawPolyline() {
     store.setCurrentFeature(polylineObj.feature);
     console.log('采集折线坐标：', polylineObj.zbc);
 
-    // 自动填充坐标串字段
+    // 自动填充坐标串字段 - 格式: [[经度,纬度],[经度,纬度]]
     if (polylineObj.zbc && Array.isArray(polylineObj.zbc)) {
-      const coordinateStr = polylineObj.zbc.map(coord => {
-        // MapComponent returns {lat, lng} objects for polyline
-        if (typeof coord === 'object' && coord.lng !== undefined && coord.lat !== undefined) {
-          return `${coord.lng},${coord.lat}`;
+      const coordinateArray = polylineObj.zbc.map(coord => {
+        // MapComponent now returns [lng, lat] array
+        if (Array.isArray(coord)) {
+          return [coord[0], coord[1]];
         }
-        // Fallback or if it changes to array
-        return `${coord[0]},${coord[1]}`;
-      }).join(';');
+        // Fallback for object format if needed
+        if (typeof coord === 'object' && coord.lng !== undefined && coord.lat !== undefined) {
+          return [coord.lng, coord.lat];
+        }
+        return null;
+      }).filter(c => c !== null);
+      const coordinateStr = JSON.stringify(coordinateArray);
       gatherPageModel.value.tableFieldValue['GATHER_ZBC'] = coordinateStr;
 
       // 更新currentEditObj以触发FieldComponent更新
@@ -352,9 +356,20 @@ function drawPolygon() {
     store.setCurrentFeature(polygonObj.feature);
     console.log('采集多边形坐标：', polygonObj.zbc);
 
-    // 自动填充坐标串字段
+    // 自动填充坐标串字段 - 格式: [[经度,纬度],[经度,纬度]]
     if (polygonObj.zbc && Array.isArray(polygonObj.zbc)) {
-      const coordinateStr = polygonObj.zbc.map(coord => `${coord[0]},${coord[1]}`).join(';');
+      const coordinateArray = polygonObj.zbc.map(coord => {
+        // MapComponent returns [lng, lat] array
+        if (Array.isArray(coord)) {
+          return [coord[0], coord[1]];
+        }
+        // Fallback for object format
+        if (typeof coord === 'object' && coord.lng !== undefined && coord.lat !== undefined) {
+          return [coord.lng, coord.lat];
+        }
+        return null;
+      }).filter(c => c !== null);
+      const coordinateStr = JSON.stringify(coordinateArray);
       gatherPageModel.value.tableFieldValue['GATHER_ZBC'] = coordinateStr;
 
       // 更新currentEditObj以触发FieldComponent更新
@@ -395,14 +410,34 @@ async function handleSave() {
     geometryData = coords;
   } else if (type === 'polyline') {
     const coords = mapRef.value.getFeatureCoordinates(currentDrawnGeometry.feature);
-    // 转换为字符串格式
-    const xyStr = coords.map(c => `${c.lat},${c.lng}`).join(';');
-    geometryData = { coordinates: xyStr };
+    // 转换为JSON数组字符串格式: [[经度,纬度],[经度,纬度]]
+    if (coords && Array.isArray(coords)) {
+      const coordinateArray = coords.map(c => {
+        // c is {lat, lng} or [lat, lng]
+        if (typeof c === 'object' && c.lng !== undefined && c.lat !== undefined) {
+          return [c.lng, c.lat];
+        } else if (Array.isArray(c)) {
+          return [c[1], c[0]];
+        }
+        return null;
+      }).filter(c => c !== null);
+      geometryData = { coordinates: JSON.stringify(coordinateArray) };
+    }
   } else if (type === 'polygon') {
     const coords = mapRef.value.getFeatureCoordinates(currentDrawnGeometry.feature);
-    // 转换为字符串格式
-    const xyStr = coords.map(c => `${c[0]},${c[1]}`).join(';');
-    geometryData = { coordinates: xyStr };
+    // 转换为JSON数组字符串格式: [[经度,纬度],[经度,纬度]]
+    if (coords && Array.isArray(coords)) {
+      const coordinateArray = coords.map(c => {
+        // c is [lng, lat] (from toLonLat in getFeatureCoordinates)
+        if (Array.isArray(c)) {
+          return [c[0], c[1]];
+        } else if (typeof c === 'object' && c.lng !== undefined && c.lat !== undefined) {
+          return [c.lng, c.lat];
+        }
+        return null;
+      }).filter(c => c !== null);
+      geometryData = { coordinates: JSON.stringify(coordinateArray) };
+    }
   }
 
   const success = await gatherPageModel.value.gatherData(geometryData);
@@ -439,12 +474,32 @@ async function handleEdit() {
     geometryData = coords;
   } else if (type === 'polyline') {
     const coords = mapRef.value.getFeatureCoordinates(currentDrawnGeometry.feature);
-    const xyStr = coords.map(c => `${c.lat},${c.lng}`).join(';');
-    geometryData = { coordinates: xyStr };
+    // 转换为JSON数组字符串格式: [[经度,纬度],[经度,纬度]]
+    if (coords && Array.isArray(coords)) {
+      const coordinateArray = coords.map(c => {
+        if (typeof c === 'object' && c.lng !== undefined && c.lat !== undefined) {
+          return [c.lng, c.lat];
+        } else if (Array.isArray(c)) {
+          return [c[1], c[0]];
+        }
+        return null;
+      }).filter(c => c !== null);
+      geometryData = { coordinates: JSON.stringify(coordinateArray) };
+    }
   } else if (type === 'polygon') {
     const coords = mapRef.value.getFeatureCoordinates(currentDrawnGeometry.feature);
-    const xyStr = coords.map(c => `${c[0]},${c[1]}`).join(';');
-    geometryData = { coordinates: xyStr };
+    // 转换为JSON数组字符串格式: [[经度,纬度],[经度,纬度]]
+    if (coords && Array.isArray(coords)) {
+      const coordinateArray = coords.map(c => {
+        if (Array.isArray(c)) {
+          return [c[0], c[1]];
+        } else if (typeof c === 'object' && c.lng !== undefined && c.lat !== undefined) {
+          return [c.lng, c.lat];
+        }
+        return null;
+      }).filter(c => c !== null);
+      geometryData = { coordinates: JSON.stringify(coordinateArray) };
+    }
   }
 
   const success = await gatherPageModel.value.editData(geometryData);
@@ -532,46 +587,44 @@ async function handleContextEdit() {
       const marker = mapRef.value.addMarker(markerJSON);
       currentDrawnGeometry = marker;
     } else if (type === 'polyline') {
-      const zbcTemp = [];
-      const xyArrTemp = data.gather_zbc.split(';');
-      for (let i = 0; i < xyArrTemp.length; i++) {
-        const xyTemp = xyArrTemp[i].split(',');
-        if (xyTemp.length >= 2) {
-          zbcTemp.push([xyTemp[0], xyTemp[1]]);
+      try {
+        // 新格式: [[经度,纬度],[经度,纬度]]
+        const coordArray = JSON.parse(data.gather_zbc);
+        const zbcTemp = coordArray; // 直接使用 [经度,纬度]
+        if (zbcTemp.length > 0) {
+          const polylineJSON = {
+            xys: zbcTemp,
+            option: {
+              weight: 5,
+              color: gatherPageModel.value.gatherTaskObj.color
+            }
+          };
+          const polyline = mapRef.value.addPolyline(polylineJSON);
+          currentDrawnGeometry = polyline;
+          mapRef.value.fitFeature(polyline.feature);
         }
-      }
-      if (zbcTemp.length > 0) {
-        const polylineJSON = {
-          xys: zbcTemp,
-          option: {
-            weight: 5,
-            color: gatherPageModel.value.gatherTaskObj.color
-          }
-        };
-        const polyline = mapRef.value.addPolyline(polylineJSON);
-        currentDrawnGeometry = polyline;
-        mapRef.value.fitFeature(polyline.feature);
+      } catch (e) {
+        console.error('解析折线坐标失败:', e);
       }
     } else if (type === 'polygon') {
-      const zbcTemp = [];
-      const xyArrTemp = data.gather_zbc.split(';');
-      for (let i = 0; i < xyArrTemp.length; i++) {
-        const xyTemp = xyArrTemp[i].split(',');
-        if (xyTemp.length >= 2) {
-          zbcTemp.push([xyTemp[0], xyTemp[1]]);
+      try {
+        // 新格式: [[经度,纬度],[经度,纬度]]
+        const coordArray = JSON.parse(data.gather_zbc);
+        const zbcTemp = coordArray; // 直接使用 [经度,纬度]
+        if (zbcTemp.length >= 3) {
+          const polygonJSON = {
+            xys: zbcTemp,
+            option: {
+              weight: 5,
+              color: gatherPageModel.value.gatherTaskObj.color
+            }
+          };
+          const polygon = mapRef.value.addPolygon(polygonJSON);
+          currentDrawnGeometry = polygon;
+          mapRef.value.fitFeature(polygon.feature);
         }
-      }
-      if (zbcTemp.length >= 3) {
-        const polygonJSON = {
-          xys: zbcTemp,
-          option: {
-            weight: 5,
-            color: gatherPageModel.value.gatherTaskObj.color
-          }
-        };
-        const polygon = mapRef.value.addPolygon(polygonJSON);
-        currentDrawnGeometry = polygon;
-        mapRef.value.fitFeature(polygon.feature);
+      } catch (e) {
+        console.error('解析多边形坐标失败:', e);
       }
     }
 
@@ -654,49 +707,53 @@ async function handleItemClick(item) {
     // 绑定点击事件
     mapRef.value.onLayerEvent('click', marker, layerClickEventCallBack, 'showPopup');
   } else if (type === 'polyline') {
-    const zbcTemp = [];
-    const xyArrTemp = data.gather_zbc.split(';');
-    for (let i = 0; i < xyArrTemp.length; i++) {
-      const xyTemp = xyArrTemp[i].split(',');
-      zbcTemp.push([xyTemp[0], xyTemp[1]]);
+    try {
+      // 新格式: [[经度,纬度],[经度,纬度]]
+      const coordArray = JSON.parse(data.gather_zbc);
+      const zbcTemp = coordArray; // 直接使用 [经度,纬度]
+      const polylineJSON = {
+        xys: zbcTemp,
+        option: {
+          weight: 5,
+          color: gatherPageModel.value.gatherTaskObj.color
+        }
+      };
+      const polyline = mapRef.value.addPolyline(polylineJSON);
+      currentDrawnGeometry = polyline;
+
+      // 定位到折线
+      mapRef.value.fitFeature(polyline.feature);
+
+      // 绑定点击事件
+      mapRef.value.onLayerEvent('click', polyline, layerClickEventCallBack, 'showPopup');
+    } catch (e) {
+      console.error('解析折线坐标失败:', e);
+      ElMessage.error('该数据的坐标格式不正确');
     }
-    const polylineJSON = {
-      xys: zbcTemp,
-      option: {
-        weight: 5,
-        color: gatherPageModel.value.gatherTaskObj.color
-      }
-    };
-    const polyline = mapRef.value.addPolyline(polylineJSON);
-    currentDrawnGeometry = polyline;
-
-    // 定位到折线
-    mapRef.value.fitFeature(polyline.feature);
-
-    // 绑定点击事件
-    mapRef.value.onLayerEvent('click', polyline, layerClickEventCallBack, 'showPopup');
   } else if (type === 'polygon') {
-    const zbcTemp = [];
-    const xyArrTemp = data.gather_zbc.split(';');
-    for (let i = 0; i < xyArrTemp.length; i++) {
-      const xyTemp = xyArrTemp[i].split(',');
-      zbcTemp.push([xyTemp[0], xyTemp[1]]);
+    try {
+      // 新格式: [[经度,纬度],[经度,纬度]]
+      const coordArray = JSON.parse(data.gather_zbc);
+      const zbcTemp = coordArray; // 直接使用 [经度,纬度]
+      const polygonJSON = {
+        xys: zbcTemp,
+        option: {
+          weight: 5,
+          color: gatherPageModel.value.gatherTaskObj.color
+        }
+      };
+      const polygon = mapRef.value.addPolygon(polygonJSON);
+      currentDrawnGeometry = polygon;
+
+      // 定位到多边形
+      mapRef.value.fitFeature(polygon.feature);
+
+      // 绑定点击事件
+      mapRef.value.onLayerEvent('click', polygon, layerClickEventCallBack, 'showPopup');
+    } catch (e) {
+      console.error('解析多边形坐标失败:', e);
+      ElMessage.error('该数据的坐标格式不正确');
     }
-    const polygonJSON = {
-      xys: zbcTemp,
-      option: {
-        weight: 5,
-        color: gatherPageModel.value.gatherTaskObj.color
-      }
-    };
-    const polygon = mapRef.value.addPolygon(polygonJSON);
-    currentDrawnGeometry = polygon;
-
-    // 定位到多边形
-    mapRef.value.fitFeature(polygon.feature);
-
-    // 绑定点击事件
-    mapRef.value.onLayerEvent('click', polygon, layerClickEventCallBack, 'showPopup');
   }
 }
 
@@ -780,18 +837,21 @@ function handleShowEditWin() {
   } else if (type === 'polyline' || type === 'polygon') {
     mapRef.value.startEditPolyline(currentDrawnGeometry);
 
-    // 监听编辑结束事件，更新坐标串字段
+    // 监听编辑结束事件，更新坐标串字段 - 格式: [[经度,纬度],[经度,纬度]]
     currentDrawnGeometry.on('edit', (e) => {
       const coords = mapRef.value.getFeatureCoordinates(currentDrawnGeometry.feature);
       if (coords && Array.isArray(coords)) {
-        const coordinateStr = coords.map(coord => {
+        const coordinateArray = coords.map(coord => {
           if (Array.isArray(coord)) {
-            return `${coord[0]},${coord[1]}`;
+            // coord is [lat, lng], convert to [lng, lat]
+            return [coord[1], coord[0]];
           } else if (coord.lat && coord.lng) {
-            return `${coord.lat},${coord.lng}`;
+            // coord is {lat, lng}, convert to [lng, lat]
+            return [coord.lng, coord.lat];
           }
-          return '';
-        }).filter(s => s).join(';');
+          return null;
+        }).filter(c => c !== null);
+        const coordinateStr = JSON.stringify(coordinateArray);
         gatherPageModel.value.tableFieldValue['GATHER_ZBC'] = coordinateStr;
         // 强制更新字段组件显示
         gatherPageModel.value.currentEditObj.gather_zbc = coordinateStr;

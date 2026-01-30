@@ -211,8 +211,8 @@ function drawPolyline(callback) {
     const coordinates = feature.getGeometry().getCoordinates();
     const lonLatCoords = coordinates.map(coord => toLonLat(coord));
 
-    // 转换为 {lat, lng} 格式
-    const zbc = lonLatCoords.map(coord => ({ lat: coord[1], lng: coord[0] }));
+    // 转换为 [lng, lat] 格式
+    const zbc = lonLatCoords.map(coord => [coord[0], coord[1]]);
 
     // map.value.removeInteraction(draw);
     // drawInteraction.value = null;
@@ -269,7 +269,8 @@ function drawPolygon(callback) {
  * @param {Object} markerJSON - { xy: [lat, lng], iconUrl, iconAnchor, width, height }
  */
 function addMarker(markerJSON) {
-  const coordinates = fromLonLat([markerJSON.xy[1], markerJSON.xy[0]]);
+  // 修改为 [lng, lat]，直接使用，不需要交换
+  const coordinates = fromLonLat([markerJSON.xy[0], markerJSON.xy[1]]);
   const feature = new Feature({
     geometry: new Point(coordinates)
   });
@@ -288,7 +289,7 @@ function addMarker(markerJSON) {
   vectorSource.value.addFeature(feature);
   return {
     feature: feature,
-    _latlng: { lng: markerJSON.xy[1], lat: markerJSON.xy[0] },
+    _latlng: { lng: markerJSON.xy[0], lat: markerJSON.xy[1] },
     dragging: {
       enable: () => enableModify()
     }
@@ -300,7 +301,8 @@ function addMarker(markerJSON) {
  * @param {Object} polylineJSON - { xys: [[lat, lng], ...], option: { weight, color } }
  */
 function addPolyline(polylineJSON) {
-  const coordinates = polylineJSON.xys.map(xy => fromLonLat([parseFloat(xy[1]), parseFloat(xy[0])]));
+  // 修改为 [lng, lat]，直接使用
+  const coordinates = polylineJSON.xys.map(xy => fromLonLat([parseFloat(xy[0]), parseFloat(xy[1])]));
   const feature = new Feature({
     geometry: new LineString(coordinates)
   });
@@ -317,7 +319,8 @@ function addPolyline(polylineJSON) {
   vectorSource.value.addFeature(feature);
 
   // 转换坐标为回调格式
-  const zbc = polylineJSON.xys.map(xy => ({ lat: parseFloat(xy[0]), lng: parseFloat(xy[1]) }));
+  // 转换坐标为回调格式 [lng, lat]
+  const zbc = polylineJSON.xys.map(xy => ({ lat: parseFloat(xy[1]), lng: parseFloat(xy[0]) }));
 
   return {
     feature: feature,
@@ -330,7 +333,8 @@ function addPolyline(polylineJSON) {
  * @param {Object} polygonJSON - { xys: [[lat, lng], ...], option: { weight, color } }
  */
 function addPolygon(polygonJSON) {
-  const coordinates = polygonJSON.xys.map(xy => fromLonLat([parseFloat(xy[1]), parseFloat(xy[0])]));
+  // 修改为 [lng, lat]，直接使用
+  const coordinates = polygonJSON.xys.map(xy => fromLonLat([parseFloat(xy[0]), parseFloat(xy[1])]));
   const feature = new Feature({
     geometry: new Polygon([coordinates])
   });
@@ -349,7 +353,7 @@ function addPolygon(polygonJSON) {
 
   vectorSource.value.addFeature(feature);
 
-  // 转换坐标为回调格式
+  // 转换坐标为回调格式 [lng, lat]
   const zbc = polygonJSON.xys.map(xy => [parseFloat(xy[1]), parseFloat(xy[0])]);
 
   return {
