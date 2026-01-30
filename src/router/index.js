@@ -18,6 +18,11 @@ const routes = [
     redirect: "/gather-state",
     children: [
       {
+        name: "gather-model",
+        path: "/gather-model",
+        component: () => import("@/components/views/gather/gather-model/View/index.vue")
+      },
+      {
         name: "gather-state",
         path: "/gather-state",
         component: () => import("@/components/views/gather/gather-state/View/index.vue")

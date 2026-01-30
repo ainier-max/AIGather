@@ -82,6 +82,12 @@
                                 </el-icon>
                                 <span>人员管理</span>
                             </el-menu-item>
+                            <el-menu-item index="7" v-if="userType !== 'normal'">
+                                <el-icon>
+                                    <UserFilled />
+                                </el-icon>
+                                <span>模型管理</span>
+                            </el-menu-item>
 
                         </el-menu>
                     </div>
@@ -184,6 +190,10 @@ const handleSelect_menu = (key, keyPath) => {
     if (key == "6") {
         console.log("用户管理");
         router.push('/user-manager')
+    }
+    if (key == "7") {
+        console.log("模型管理");
+        router.push('/gather-model')
     }
 };
 
