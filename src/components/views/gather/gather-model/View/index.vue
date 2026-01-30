@@ -182,7 +182,7 @@
 import { onMounted, ref } from "vue";
 import { storeToRefs } from "pinia";
 import { gatherModelStore } from "@/components/views/gather/gather-model/Controller/gatherModelStore.ts";
-import MyMonacoEditor from "@/common/component/CodeEditor/MyMonacoEditor/index.vue";
+import MyMonacoEditor from "@/components/views/gather/gather-model/View/components/MyMonacoEditor/index.vue";
 import { Folder, Plus, Delete } from '@element-plus/icons-vue';
 
 const controllerStoreObj = gatherModelStore();

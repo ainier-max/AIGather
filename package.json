@@ -6,7 +6,8 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@micro-zoe/micro-app": "^1.0.0-rc.29",
+    "@micro-zoe/micro-app": "^0.8.10",
+    "monaco-editor": "^0.34.1",
     "@vueup/vue-quill": "^1.2.0",
     "axios": "^1.13.2",
     "echarts": "^6.0.0",

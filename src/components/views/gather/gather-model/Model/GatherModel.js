@@ -1,14 +1,7 @@
-import { getListData, findNodeById } from "@/common/js/tree.js";
+import { getListData, findNodeById } from "@/components/views/gather/common/tree.js";
 import { ElMessage } from "element-plus";
-import { objectToString, stringToObject } from "@/common/js/objStr.js";
-import {
-    commonExcuteRequest,
-    commonSelectRequest,
-    commonMapperRefreshRequest,
-    commonExcuteByBatchRequest,
-    commonMapperRefreshByEditNameSpace,
-    mapperRefreshByDeleteNameSpace,
-} from "@/common/js/request.js";
+import { objectToString, stringToObject } from "@/components/views/gather/common/objStr.js";
+import commonApi from "@/api/common/index.js";
 
 /**
  * MVC中的Model层,主要用来处理逻辑
@@ -56,7 +49,8 @@ class GatherModel {
     findDataModelTree(treeRef) {
         let param = {};
         param.sql = "page_data_model_tree.find";
-        commonSelectRequest(axios, param, (result) => {
+        commonApi.select(param).then(res => {
+            const result = res[0];
             this.dataModelTreeData = getListData(result.objects, [
                 "name_space",
                 "data_model_id",
@@ -89,7 +83,8 @@ class GatherModel {
         param.old_name_space = this.currentDataModelTreeNodeData.old_name_space;
         param.name_space = this.currentDataModelTreeNodeData.name_space;
         param.id = this.currentDataModelTreeNodeData.id;
-        commonMapperRefreshByEditNameSpace(axios, param, (result) => {
+        commonApi.mapperRefreshByEditNameSpace(param).then(res => {
+            const result = res[0];
             if ((result.state = "success")) {
                 ElMessage.success("保存成功！");
                 if (callback) callback();
@@ -100,7 +95,8 @@ class GatherModel {
     onSubmit() {
         let param = { ...this.currentDataModelTreeNodeData };
         param.name = this.currentDataModelTreeNodeData.label;
-        commonMapperRefreshRequest(axios, param, (result) => {
+        commonApi.mapperRefresh(param).then(res => {
+            const result = res[0];
             if ((result.state = "success")) {
                 ElMessage.success("保存成功！");
             }
@@ -116,7 +112,8 @@ class GatherModel {
                 this.currentDataModelTreeNodeData.name_space +
                 "." +
                 this.currentDataModelTreeNodeData.data_model_id;
-            commonSelectRequest(axios, param, (result) => {
+            commonApi.select(param).then(res => {
+                const result = res[0];
                 console.log("onTestSelectCallBack--result", result);
                 if (result.objects.length > 0) {
                     this.headerTableData = Object.keys(result.objects[0]);
@@ -139,7 +136,8 @@ class GatherModel {
                 this.currentDataModelTreeNodeData.name_space +
                 "." +
                 this.currentDataModelTreeNodeData.data_model_id;
-            commonExcuteByBatchRequest(axios, param, (result) => {
+            commonApi.excuteByBatch(param).then(res => {
+                const result = res[0];
                 console.log("onTestExcuteCallBack--result", result);
                 if (result.state == "success") {
                     ElMessage.success("测试执行成功！");
@@ -171,7 +169,8 @@ class GatherModel {
         param.data_model_id = this.namespaceForm.data_model_id;
 
         param.sql = "page_data_model_tree.addNameSpace";
-        commonExcuteRequest(axios, param, (result) => {
+        commonApi.excute(param).then(res => {
+            const result = res[0];
             if (result.state == "success") {
                 ElMessage.success("保存成功！");
                 this.addNameSpaceDialogVisible = false;
@@ -198,7 +197,8 @@ class GatherModel {
             param.deleteType = "deleteSQL";
         }
 
-        mapperRefreshByDeleteNameSpace(axios, param, (result) => {
+        commonApi.mapperRefreshByDeleteNameSpace(param).then(res => {
+            const result = res[0];
             if (result.state == "success") {
                 ElMessage.success("删除成功！");
                 this.deleteNameSpaceDialogVisible = false;
@@ -218,7 +218,8 @@ class GatherModel {
         let param = {};
         param.sql = "page_data_model_tree.findByID";
         param.id = id;
-        commonSelectRequest(axios, param, (result) => {
+        commonApi.select(param).then(res => {
+            const result = res[0];
             console.log("findByIDCallBack--result", result);
             this.currentDataModelTreeNodeData = result.objects[0];
             this.currentDataModelTreeNodeData.label = this.currentDataModelTreeNodeData.name;

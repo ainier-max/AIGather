@@ -16,6 +16,38 @@ export default {
             data
         });
     },
+    //批量执行接口
+    excuteByBatch(data) {
+        return request({
+            url: "/cbc/excuteByBatch.cbc",
+            method: "post",
+            data
+        });
+    },
+    //刷新Mapper(修改命名空间)
+    mapperRefreshByEditNameSpace(data) {
+        return request({
+            url: "/cbc/mapperRefreshByEditNameSpace.cbc",
+            method: "post",
+            data
+        });
+    },
+    //刷新Mapper
+    mapperRefresh(data) {
+        return request({
+            url: "/cbc/mapperRefresh.cbc",
+            method: "post",
+            data
+        });
+    },
+    //刷新Mapper(删除命名空间)
+    mapperRefreshByDeleteNameSpace(data) {
+        return request({
+            url: "/cbc/mapperRefreshByDeleteNameSpace.cbc",
+            method: "post",
+            data
+        });
+    },
     //文件上传接口
     uploadFile(data) {
         return request({
@@ -44,4 +76,5 @@ export default {
             params: query
         })
     }
+
 }
