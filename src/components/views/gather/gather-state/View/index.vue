@@ -91,7 +91,8 @@
                                 <div v-if="gatherStateModel.listData.length === 0" class="empty-list">
                                     暂无数据
                                 </div>
-                                <div v-for="(item, index) in gatherStateModel.listData" :key="index" class="list-card">
+                                <div v-for="(item, index) in gatherStateModel.listData" :key="index" class="list-card"
+                                    @click="handleCardClick(item)">
                                     <div class="card-header">
                                         <div class="index-badge">{{ (gatherStateModel.currentPage - 1) *
                                             gatherStateModel.pageSize +
@@ -447,6 +448,91 @@ const handleNodeClick = (data) => {
 const handleModeChange = (mode) => {
     if (gatherStateModel.value) {
         gatherStateModel.value.toggleDisplayMode(mode);
+    }
+};
+
+// 处理卡片点击定位
+const handleCardClick = (item) => {
+    if (!map.value || !vectorSource.value) return;
+
+    // Construct feature geometry to find center/extent
+    let geometry = null;
+
+    // 1. Try ZBC (Lines/Polygons)
+    const zbc = item.GATHER_ZBC || item.gather_zbc;
+    const currentNode = gatherStateModel.value?.currentNode;
+    const isPolygon = currentNode && currentNode.type && currentNode.type.includes('polygon');
+    const isLine = currentNode && currentNode.type && currentNode.type.includes('polyline');
+
+    if (zbc && (isPolygon || isLine)) {
+        try {
+            const points = [];
+            const parts = zbc.split(';');
+            parts.forEach(part => {
+                const [latStr, lngStr] = part.split(',');
+                if (latStr && lngStr) {
+                    const lat = parseFloat(latStr);
+                    const lng = parseFloat(lngStr);
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        points.push([lng, lat]);
+                    }
+                }
+            });
+            if (points.length > 1) {
+                if (isLine) {
+                    geometry = new LineString(points);
+                } else if (isPolygon) {
+                    const first = points[0];
+                    const last = points[points.length - 1];
+                    if (first[0] !== last[0] || first[1] !== last[1]) {
+                        points.push(first);
+                    }
+                    geometry = new Polygon([points]);
+                }
+            }
+        } catch (e) { }
+    }
+
+    // 2. Try WKT
+    if (!geometry) {
+        let wkt = item.GATHER_THE_GEOM || item.gather_the_geom || item.GATHER_THE_GEOM_TEXT;
+        if (wkt) {
+            if (typeof wkt === 'string' && wkt.startsWith('SRID=')) {
+                const parts = wkt.split(';');
+                if (parts.length > 1) wkt = parts[1];
+            }
+            try {
+                const feature = wktFormat.readFeature(wkt, {
+                    dataProjection: 'EPSG:4326',
+                    featureProjection: 'EPSG:4326'
+                });
+                if (feature) geometry = feature.getGeometry();
+            } catch (e) { }
+        }
+    }
+
+    // 3. Try Points
+    if (!geometry) {
+        const x = item.GATHER_ZBX || item.gather_zbx;
+        const y = item.GATHER_ZBY || item.gather_zby;
+        if (x && y) {
+            const lng = parseFloat(x);
+            const lat = parseFloat(y);
+            if (!isNaN(lng) && !isNaN(lat)) {
+                geometry = new Point([lng, lat]);
+            }
+        }
+    }
+
+    if (geometry) {
+        const extent = geometry.getExtent();
+        if (extent && !extent.some(val => !isFinite(val))) {
+            map.value.getView().fit(extent, {
+                padding: [100, 100, 100, 100],
+                duration: 1000,
+                maxZoom: 18 // Zoom in closer for points
+            });
+        }
     }
 };
 
