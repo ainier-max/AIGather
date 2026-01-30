@@ -217,6 +217,7 @@ class GatherModel {
     }
 
     treeRemove(data) {
+        this.currentDataModelTreeNodeData = data;
         this.deleteNameSpaceDialogVisible = true;
     }
 

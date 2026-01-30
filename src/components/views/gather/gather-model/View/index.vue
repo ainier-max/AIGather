@@ -158,7 +158,8 @@
     <el-dialog v-if="modelClass" title="确认框" v-model="modelClass.deleteNameSpaceDialogVisible"
         :close-on-click-modal="false" width="60%">
         <div v-if="!modelClass.currentDataModelTreeNodeData?.data_model_id">
-            将要删除<span style="color: red; font-weight: bold">({{ modelClass.currentDataModelTreeNodeData?.name }})</span>
+            将要删除1<span style="color: red; font-weight: bold">({{ modelClass.currentDataModelTreeNodeData?.name
+            }})</span>
             <br />该操作也会把对应的整个命名空间中的SQL进行删除，数据不可恢复，请小心操作。
         </div>
 
