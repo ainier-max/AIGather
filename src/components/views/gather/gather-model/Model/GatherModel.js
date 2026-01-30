@@ -14,6 +14,7 @@ class GatherModel {
     dataModelTreeData = [];
     currentDataModelTreeNodeData = null;
     treeCurrentKey = "";
+    defaultExpandedKeys = [];
     codeEditorFlag = true;
     tableData = [];
     headerTableData = [];
@@ -83,6 +84,12 @@ class GatherModel {
             // Use custom buildTree instead of getListData to preserve all fields
             this.dataModelTreeData = this.buildTree(result.objects);
             console.log("dataModelTreeData", this.dataModelTreeData);
+
+            // Expand first level
+            if (this.dataModelTreeData.length > 0) {
+                this.defaultExpandedKeys = [this.dataModelTreeData[0].id];
+            }
+
             // Handling nextTick/UI updates usually belongs to View or via reactivity
             if (this.treeCurrentKey && treeRef && treeRef.value) {
                 setTimeout(() => {
@@ -110,6 +117,7 @@ class GatherModel {
             const result = res[0];
             if ((result.state = "success")) {
                 ElMessage.success("保存成功！");
+                this.findDataModelTree();
                 if (callback) callback();
             }
         });
@@ -122,6 +130,7 @@ class GatherModel {
             const result = res[0];
             if ((result.state = "success")) {
                 ElMessage.success("保存成功！");
+                this.findDataModelTree();
             }
         });
     }
@@ -171,6 +180,7 @@ class GatherModel {
 
     treeAppend(data) {
         console.log("treeAppend--data", data);
+        this.currentDataModelTreeNodeData = data;
         if (data.name_space) {
             this.addNameSpaceDialogVisible = true;
         } else {
@@ -197,6 +207,7 @@ class GatherModel {
             if (result.state == "success") {
                 ElMessage.success("保存成功！");
                 this.addNameSpaceDialogVisible = false;
+                this.findDataModelTree();
                 if (callback) callback();
                 this.namespaceForm.name = "";
                 this.namespaceForm.name_space = "";
@@ -225,6 +236,7 @@ class GatherModel {
             if (result.state == "success") {
                 ElMessage.success("删除成功！");
                 this.deleteNameSpaceDialogVisible = false;
+                this.findDataModelTree();
                 if (callback) callback();
             }
         });

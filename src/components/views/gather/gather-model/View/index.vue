@@ -10,7 +10,7 @@
 
                 <el-tree ref="dataModelTreeRef" :data="modelClass.dataModelTreeData" node-key="id"
                     :default-expand-all="false" :expand-on-click-node="false" :props="modelClass.defaultProps"
-                    :highlight-current="true" :default-expanded-keys="[1]"
+                    :highlight-current="true" :default-expanded-keys="modelClass.defaultExpandedKeys"
                     @node-click="(item, data) => modelClass.handleNodeClick(item, data)"
                     style="margin-left: 50px; height: 100%; overflow-y: auto">
                     <template #default="{ node, data }">

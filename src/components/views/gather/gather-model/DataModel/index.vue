@@ -8,8 +8,9 @@
         </el-divider>
 
         <el-tree ref="dataModelTreeRef" :data="dataModelTreeData" node-key="id" :default-expand-all="false"
-          :expand-on-click-node="false" :props="defaultProps" :highlight-current="true" :default-expanded-keys="[1]"
-          @node-click="handleNodeClick" style="margin-left: 50px; height: 100%; overflow-y: auto">
+          :expand-on-click-node="false" :props="defaultProps" :highlight-current="true"
+          :default-expanded-keys="defaultExpandedKeys" @node-click="handleNodeClick"
+          style="margin-left: 50px; height: 100%; overflow-y: auto">
           <template #default="{ node, data }">
             <span class="custom-tree-node">
               <span v-if="data.data_model_id == null || data.data_model_id == ''">
@@ -159,7 +160,7 @@ import { getListData, findNodeById } from "@/common/js/tree.js";
 import { ElMessage } from "element-plus";
 import { objectToString, stringToObject } from "@/common/js/objStr.js";
 import MyMonacoEditor from "@/common/component/CodeEditor/MyMonacoEditor/index.vue";
-import { uuid as cbcuuid } from "@/components/views/gather/common/uuid.js";
+import { cbcuuid } from "@/components/views/gather/common/uuid.js";
 
 import {
   commonExcuteRequest,
@@ -200,6 +201,8 @@ const labelInput = () => {
   nodeTemp.label = currentDataModelTreeNodeData.value.label;
 };
 
+const defaultExpandedKeys = ref<any>([]);
+
 //查找组件树
 const findDataModelTree = () => {
   let param = {};
@@ -216,6 +219,9 @@ const findDataModelTreeCallBack = (result) => {
     "is_cache",
   ]);
   console.log("dataModelTreeData", dataModelTreeData);
+  if (dataModelTreeData.value && dataModelTreeData.value.length > 0) {
+    defaultExpandedKeys.value = [dataModelTreeData.value[0].id];
+  }
   nextTick(() => {
     if (treeCurrentKey.value) {
       dataModelTreeRef.value.setCurrentKey(treeCurrentKey.value);
@@ -257,6 +263,7 @@ const onSubmit = () => {
 const onSubmitCallBack = (result) => {
   if ((result.state = "success")) {
     ElMessage.success("保存成功！");
+    findDataModelTree();
   }
 };
 
