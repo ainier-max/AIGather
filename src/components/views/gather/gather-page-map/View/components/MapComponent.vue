@@ -17,6 +17,7 @@ import { Style, Icon, Stroke, Fill, Circle as CircleStyle } from 'ol/style';
 import Overlay from 'ol/Overlay';
 import { fromLonLat, toLonLat } from 'ol/proj';
 import { defaults as defaultControls } from 'ol/control';
+import { ElMessage } from 'element-plus';
 
 const props = defineProps({
   tileUrl: {
@@ -511,10 +512,17 @@ function fitFeature(feature) {
     const geometry = feature.getGeometry();
     if (geometry) {
       const extent = geometry.getExtent();
-      map.value.getView().fit(extent, {
-        duration: 1000,
-        padding: [100, 100, 100, 100] // Padding to ensure feature is not at the very edge
-      });
+
+      try {
+        map.value.getView().fit(extent, {
+          duration: 1000,
+          padding: [1000, 1000, 1000, 1000] // Padding to ensure feature is not at the very edge
+        });
+      } catch (error) {
+        console.error("定位异常", error);
+        ElMessage.warning("坐标异常，无法定位！");
+      }
+
     }
   }
 }
