@@ -1,7 +1,7 @@
 /* gather-state Styles */
 .gather-state-container {
     height: 100%;
-    padding: 20px;
+    padding: 10px 20px;
     box-sizing: border-box;
     background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
     display: flex;
@@ -10,13 +10,17 @@
 }
 
 .titleClass {
-    font-size: 26px;
-    font-weight: 700;
+    padding: 10px 20px;
+    background: linear-gradient(90deg, #fff1f2 0%, #ffffff 100%);
+    border-radius: 8px;
+    border-left: 6px solid #fe6c6f;
     margin-bottom: 20px;
+    font-size: 18px;
+    font-weight: 600;
     color: #1e293b;
-    border-left: 6px solid #3b82f6;
-    padding-left: 20px;
-    letter-spacing: -0.5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
     flex-shrink: 0;
 }
 
