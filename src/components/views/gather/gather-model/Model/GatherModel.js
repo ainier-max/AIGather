@@ -1,4 +1,4 @@
-import { getListData, findNodeById } from "@/components/views/gather/common/tree.js";
+import { findNodeById } from "@/components/views/gather/common/tree.js";
 import { ElMessage } from "element-plus";
 import { objectToString, stringToObject } from "@/components/views/gather/common/objStr.js";
 import commonApi from "@/api/common/index.js";
@@ -46,19 +46,41 @@ class GatherModel {
         nodeTemp.label = this.currentDataModelTreeNodeData.label;
     }
 
+    buildTree(list) {
+        if (!list) return [];
+        const temp = {};
+        const tree = [];
+        // First pass: map items
+        list.forEach(item => {
+            // Ensure basic props for Tree component
+            // tree.js expected uppercase ID/PID/NAME, so we assume backend sends those or we fallback
+            item.id = item.ID || item.id;
+            item.label = item.NAME || item.label || item.name;
+            const pid = item.PID || item.pid; // Don't overwrite item.pid if it exists
+
+            item.children = [];
+            temp[item.id] = item;
+        });
+
+        // Second pass: link items
+        list.forEach(item => {
+            const pid = item.PID || item.pid;
+            if (pid && temp[pid]) {
+                temp[pid].children.push(item);
+            } else {
+                tree.push(item);
+            }
+        });
+        return tree;
+    }
+
     findDataModelTree(treeRef) {
         let param = {};
         param.sql = "page_data_model_tree.find";
         commonApi.select(param).then(res => {
             const result = res[0];
-            this.dataModelTreeData = getListData(result.objects, [
-                "name_space",
-                "data_model_id",
-                "data_model_type",
-                "data_model_sql",
-                "data_model_param",
-                "is_cache",
-            ]);
+            // Use custom buildTree instead of getListData to preserve all fields
+            this.dataModelTreeData = this.buildTree(result.objects);
             console.log("dataModelTreeData", this.dataModelTreeData);
             // Handling nextTick/UI updates usually belongs to View or via reactivity
             if (this.treeCurrentKey && treeRef && treeRef.value) {
