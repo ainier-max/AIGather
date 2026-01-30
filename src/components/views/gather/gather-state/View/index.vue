@@ -203,8 +203,16 @@
                                 </template>
                             </el-table-column>
 
-                            <el-table-column prop="gather_cjsj" label="采集时间" width="180" align="center" />
-                            <el-table-column prop="gather_cjr" label="采集人" width="120" align="center" />
+                            <el-table-column label="采集时间" width="180" align="center">
+                                <template #default="{ row }">
+                                    {{ row.gather_cjsj || row.GATHER_CJSJ || '-' }}
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="采集人" width="120" align="center">
+                                <template #default="{ row }">
+                                    {{ row.gather_cjr || row.GATHER_CJR || '-' }}
+                                </template>
+                            </el-table-column>
                             <el-table-column label="详细信息" align="center" fixed="right" width="120">
                                 <template #default="{ row }">
                                     <el-button type="primary" link size="small"

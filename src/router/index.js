@@ -15,6 +15,7 @@ const routes = [
     path: "/gather",
     name: "gather",
     component: () => import("@/components/views/gather/index.vue"),
+    redirect: "/gather-state",
     children: [
       {
         name: "gather-state",
