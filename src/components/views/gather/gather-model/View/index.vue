@@ -15,28 +15,24 @@
                     style="margin-left: 50px; height: 100%; overflow-y: auto">
                     <template #default="{ node, data }">
                         <span class="custom-tree-node">
-                            <span v-if="data.data_model_id == null || data.data_model_id == ''">
-                                <el-icon style="width: 1em; height: 1em">
+                            <span class="node-content">
+                                <el-icon v-if="!data.data_model_id" class="node-icon">
                                     <Folder />
                                 </el-icon>
-                                {{ node.label }}
-                                <span v-if="data.name_space">({{ data.name_space }})</span>
+
+                                <span class="node-label" :title="node.label">{{ node.label }}</span>
+
+                                <span v-if="data.name_space && !data.data_model_id" class="node-info">({{
+                                    data.name_space }})</span>
+                                <span v-if="data.data_model_id" class="node-info">({{ data.data_model_id }})</span>
                             </span>
-                            <span v-if="data.data_model_id != null && data.data_model_id != ''">
-                                {{ node.label }}({{ data.data_model_id }})
-                            </span>
-                            <span>
-                                <el-icon v-if="data.data_model_id == null || data.data_model_id == ''" style="
-                    width: 1em;
-                    height: 1em;
-                    color: blueviolet;
-                    margin-left: 8px;
-                  " @click.stop="() => modelClass.treeAppend(data)">
+
+                            <span class="node-actions">
+                                <el-icon v-if="!data.data_model_id" class="action-icon add-icon"
+                                    @click.stop="() => modelClass.treeAppend(data)">
                                     <Plus />
                                 </el-icon>
-
-                                <el-icon v-if="data.id != 1"
-                                    style="width: 1em; height: 1em; color: red; margin-left: 8px"
+                                <el-icon v-if="data.id != 1" class="action-icon delete-icon"
                                     @click.stop="() => modelClass.treeRemove(data)">
                                     <Delete />
                                 </el-icon>

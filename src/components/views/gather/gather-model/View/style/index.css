@@ -5,6 +5,7 @@
     padding: 20px;
 }
 
+/* Enhanced Tree Styles */
 .custom-tree-node {
     flex: 1;
     display: flex;
@@ -12,6 +13,66 @@
     justify-content: space-between;
     font-size: 14px;
     padding-right: 8px;
+    overflow: hidden;
+}
+
+.node-content {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    flex: 1;
+    margin-right: 10px;
+}
+
+.node-icon {
+    margin-right: 6px;
+    font-size: 16px;
+    color: #909399;
+    display: flex;
+    align-items: center;
+}
+
+.node-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.node-info {
+    color: #909399;
+    font-size: 12px;
+    margin-left: 4px;
+    white-space: nowrap;
+}
+
+.node-actions {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.action-icon {
+    width: 1em;
+    height: 1em;
+    margin-left: 8px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.add-icon {
+    color: blueviolet;
+}
+
+.delete-icon {
+    color: #f56c6c;
+}
+
+.action-icon:hover {
+    opacity: 0.8;
+    transform: scale(1.1);
+    transition: transform 0.2s;
 }
 
 .leftTitle {
@@ -34,4 +95,15 @@
     border-left: 5px solid #fe6c6f;
     margin: 10px 0;
     line-height: 40px;
+}
+
+/* Remove white backgrounds using :deep() for component internals */
+:deep(.el-tree) {
+    background-color: transparent !important;
+}
+
+/* Override Element Plus divider text background */
+:deep(.el-divider__text),
+:deep(.el-divider__text.is-left) {
+    background-color: transparent !important;
 }
