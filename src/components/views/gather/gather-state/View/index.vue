@@ -96,7 +96,7 @@
                                         <div class="index-badge">{{ (gatherStateModel.currentPage - 1) *
                                             gatherStateModel.pageSize +
                                             index + 1
-                                            }}:</div>
+                                        }}:</div>
                                         <div class="card-title">
                                             {{ getTitleField ? (item[getTitleField.field_name] || '无标题') :
                                                 (item.gather_cjr || '未知') }}
@@ -171,7 +171,7 @@ import XYZ from 'ol/source/XYZ';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import WKT from 'ol/format/WKT';
-import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style';
+import { Circle as CircleStyle, Fill, Stroke, Style, Icon } from 'ol/style';
 import Feature from 'ol/Feature';
 import { Point } from 'ol/geom';
 
@@ -233,6 +233,78 @@ const renderMapData = () => {
 
     vectorSource.value.clear();
 
+    // Prepare Style
+    const currentNode = gatherStateModel.value.currentNode;
+    let style = null;
+
+    if (currentNode) {
+        const color = currentNode.color || '#ffcc33';
+        // Hex to RGBA for fill
+        const hexToRgba = (hex, alpha) => {
+            let r = 0, g = 0, b = 0;
+            if (hex.startsWith('#')) hex = hex.slice(1);
+
+            if (hex.length === 3) {
+                r = parseInt(hex[0] + hex[0], 16);
+                g = parseInt(hex[1] + hex[1], 16);
+                b = parseInt(hex[2] + hex[2], 16);
+            } else if (hex.length === 6) {
+                r = parseInt(hex.slice(0, 2), 16);
+                g = parseInt(hex.slice(2, 4), 16);
+                b = parseInt(hex.slice(4, 6), 16);
+            }
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        };
+
+        if (currentNode.type && currentNode.type.includes('point')) {
+            if (currentNode.layerimg) {
+                style = new Style({
+                    image: new Icon({
+                        src: currentNode.layerimg,
+                        scale: 0.8
+                    })
+                });
+            } else {
+                style = new Style({
+                    image: new CircleStyle({
+                        radius: 7,
+                        fill: new Fill({ color: color }),
+                        stroke: new Stroke({ color: '#fff', width: 2 })
+                    })
+                });
+            }
+        } else if (currentNode.type && currentNode.type.includes('polyline')) {
+            style = new Style({
+                stroke: new Stroke({
+                    color: color,
+                    width: 3
+                })
+            });
+        } else if (currentNode.type && currentNode.type.includes('polygon')) {
+            style = new Style({
+                stroke: new Stroke({
+                    color: color,
+                    width: 2
+                }),
+                fill: new Fill({
+                    color: hexToRgba(color, 0.4)
+                })
+            });
+        }
+    }
+
+    // Default fallback style
+    if (!style) {
+        style = new Style({
+            fill: new Fill({ color: 'rgba(255, 255, 255, 0.2)' }),
+            stroke: new Stroke({ color: '#ffcc33', width: 2 }),
+            image: new CircleStyle({
+                radius: 7,
+                fill: new Fill({ color: '#ffcc33' })
+            })
+        });
+    }
+
     const features = [];
     gatherStateModel.value.mapData.forEach(item => {
         let feature = null;
@@ -265,6 +337,7 @@ const renderMapData = () => {
         }
 
         if (feature) {
+            feature.setStyle(style);
             features.push(feature);
         }
     });
