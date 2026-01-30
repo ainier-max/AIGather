@@ -207,7 +207,8 @@
                             <el-table-column prop="gather_cjr" label="采集人" width="120" align="center" />
                             <el-table-column label="详细信息" align="center" fixed="right" width="120">
                                 <template #default="{ row }">
-                                    <el-button type="primary" link size="small">查看详情</el-button>
+                                    <el-button type="primary" link size="small"
+                                        @click="handleViewDetail(row)">查看详情</el-button>
                                 </template>
                             </el-table-column>
                         </el-table>
@@ -225,6 +226,43 @@
                 </div>
             </div>
         </div>
+
+        <!-- Detail Dialog -->
+        <el-dialog v-model="detailDialogVisible" title="详细信息" width="600px">
+            <el-descriptions :column="1" border v-if="currentDetailRow">
+                <el-descriptions-item v-for="field in gatherStateModel.fieldArr" :key="field.field_name"
+                    :label="field.field_dec">
+                    <template v-if="field.field_type === 'photo' && currentDetailRow[field.field_name]">
+                        <el-image v-for="(uuid, idx) in currentDetailRow[field.field_name].split(',')" :key="idx"
+                            :src="commonApi.getFileUrl(uuid, 'photo')"
+                            :preview-src-list="currentDetailRow[field.field_name].split(',').map(u => commonApi.getFileUrl(u, 'photo'))"
+                            style="width: 60px; height: 60px; margin-right: 5px;" fit="cover" preview-teleported />
+                    </template>
+                    <template v-else-if="field.field_type === 'audio' && currentDetailRow[field.field_name]">
+                        <audio v-for="(uuid, idx) in currentDetailRow[field.field_name].split(',')" :key="idx" controls
+                            style="width: 100%; margin-bottom: 5px;">
+                            <source :src="commonApi.getFileUrl(uuid, 'audio')" type="audio/mpeg">
+                        </audio>
+                    </template>
+                    <template v-else-if="field.field_type === 'video' && currentDetailRow[field.field_name]">
+                        <video v-for="(uuid, idx) in currentDetailRow[field.field_name].split(',')" :key="idx" controls
+                            style="width: 100%; margin-bottom: 5px;">
+                            <source :src="commonApi.getFileUrl(uuid, 'video')" type="video/mp4">
+                        </video>
+                    </template>
+                    <template v-else-if="field.field_type === 'rich' && currentDetailRow[field.field_name]">
+                        <div v-html="currentDetailRow[field.field_name]"></div>
+                    </template>
+                    <span v-else>{{ currentDetailRow[field.field_name] || '-' }}</span>
+                </el-descriptions-item>
+                <el-descriptions-item label="采集时间">
+                    {{ currentDetailRow.gather_cjsj || '-' }}
+                </el-descriptions-item>
+                <el-descriptions-item label="采集人">
+                    {{ currentDetailRow.gather_cjr || '-' }}
+                </el-descriptions-item>
+            </el-descriptions>
+        </el-dialog>
     </div>
 </template>
 
@@ -269,6 +307,10 @@ const tableKey = computed(() => {
 
 // Control table visibility for complete re-initialization
 const showTable = ref(true);
+
+// Detail dialog
+const detailDialogVisible = ref(false);
+const currentDetailRow = ref(null);
 
 onMounted(async () => {
     store.initClass();
@@ -657,6 +699,12 @@ const handleCardClick = (item) => {
             });
         }
     }
+};
+
+// 处理查看详情
+const handleViewDetail = (row) => {
+    currentDetailRow.value = row;
+    detailDialogVisible.value = true;
 };
 
 // 处理页码改变
