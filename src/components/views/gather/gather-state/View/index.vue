@@ -364,6 +364,24 @@ const initMap = () => {
             projection: 'EPSG:4326' // Use 4326 for easier WKT handling if data is in lat/lon
         })
     });
+
+    // Add click event listener to map
+    map.value.on('click', (event) => {
+        const feature = map.value.forEachFeatureAtPixel(event.pixel, (feature) => feature);
+        if (feature) {
+            const rowData = feature.get('rowData');
+            if (rowData) {
+                handleViewDetail(rowData);
+            }
+        }
+    });
+
+    // Change cursor on hover over features
+    map.value.on('pointermove', (event) => {
+        const pixel = map.value.getEventPixel(event.originalEvent);
+        const hit = map.value.hasFeatureAtPixel(pixel);
+        map.value.getTargetElement().style.cursor = hit ? 'pointer' : '';
+    });
 };
 
 // Render Map Data
@@ -522,6 +540,7 @@ const renderMapData = () => {
 
         if (feature) {
             feature.setStyle(style);
+            feature.set('rowData', item); // Attach row data for click events
             features.push(feature);
         }
     });
