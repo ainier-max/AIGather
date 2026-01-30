@@ -229,39 +229,41 @@
 
         <!-- Detail Dialog -->
         <el-dialog v-model="detailDialogVisible" title="详细信息" width="600px">
-            <el-descriptions :column="1" border v-if="currentDetailRow">
-                <el-descriptions-item v-for="field in gatherStateModel.fieldArr" :key="field.field_name"
-                    :label="field.field_dec">
-                    <template v-if="field.field_type === 'photo' && currentDetailRow[field.field_name]">
-                        <el-image v-for="(uuid, idx) in currentDetailRow[field.field_name].split(',')" :key="idx"
-                            :src="commonApi.getFileUrl(uuid, 'photo')"
-                            :preview-src-list="currentDetailRow[field.field_name].split(',').map(u => commonApi.getFileUrl(u, 'photo'))"
-                            style="width: 60px; height: 60px; margin-right: 5px;" fit="cover" preview-teleported />
-                    </template>
-                    <template v-else-if="field.field_type === 'audio' && currentDetailRow[field.field_name]">
-                        <audio v-for="(uuid, idx) in currentDetailRow[field.field_name].split(',')" :key="idx" controls
-                            style="width: 100%; margin-bottom: 5px;">
-                            <source :src="commonApi.getFileUrl(uuid, 'audio')" type="audio/mpeg">
-                        </audio>
-                    </template>
-                    <template v-else-if="field.field_type === 'video' && currentDetailRow[field.field_name]">
-                        <video v-for="(uuid, idx) in currentDetailRow[field.field_name].split(',')" :key="idx" controls
-                            style="width: 100%; margin-bottom: 5px;">
-                            <source :src="commonApi.getFileUrl(uuid, 'video')" type="video/mp4">
-                        </video>
-                    </template>
-                    <template v-else-if="field.field_type === 'rich' && currentDetailRow[field.field_name]">
-                        <div v-html="currentDetailRow[field.field_name]"></div>
-                    </template>
-                    <span v-else>{{ currentDetailRow[field.field_name] || '-' }}</span>
-                </el-descriptions-item>
-                <el-descriptions-item label="采集时间">
-                    {{ currentDetailRow.gather_cjsj || '-' }}
-                </el-descriptions-item>
-                <el-descriptions-item label="采集人">
-                    {{ currentDetailRow.gather_cjr || '-' }}
-                </el-descriptions-item>
-            </el-descriptions>
+            <div style="max-height: 60vh; overflow-y: auto; padding-right: 10px;">
+                <el-descriptions :column="1" border v-if="currentDetailRow">
+                    <el-descriptions-item v-for="field in gatherStateModel.fieldArr" :key="field.field_name"
+                        :label="field.field_dec">
+                        <template v-if="field.field_type === 'photo' && currentDetailRow[field.field_name]">
+                            <el-image v-for="(uuid, idx) in currentDetailRow[field.field_name].split(',')" :key="idx"
+                                :src="commonApi.getFileUrl(uuid, 'photo')"
+                                :preview-src-list="currentDetailRow[field.field_name].split(',').map(u => commonApi.getFileUrl(u, 'photo'))"
+                                style="width: 60px; height: 60px; margin-right: 5px;" fit="cover" preview-teleported />
+                        </template>
+                        <template v-else-if="field.field_type === 'audio' && currentDetailRow[field.field_name]">
+                            <audio v-for="(uuid, idx) in currentDetailRow[field.field_name].split(',')" :key="idx"
+                                controls style="width: 100%; margin-bottom: 5px;">
+                                <source :src="commonApi.getFileUrl(uuid, 'audio')" type="audio/mpeg">
+                            </audio>
+                        </template>
+                        <template v-else-if="field.field_type === 'video' && currentDetailRow[field.field_name]">
+                            <video v-for="(uuid, idx) in currentDetailRow[field.field_name].split(',')" :key="idx"
+                                controls style="width: 100%; margin-bottom: 5px;">
+                                <source :src="commonApi.getFileUrl(uuid, 'video')" type="video/mp4">
+                            </video>
+                        </template>
+                        <template v-else-if="field.field_type === 'rich' && currentDetailRow[field.field_name]">
+                            <div v-html="currentDetailRow[field.field_name]"></div>
+                        </template>
+                        <span v-else>{{ currentDetailRow[field.field_name] || '-' }}</span>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="采集时间">
+                        {{ currentDetailRow.gather_cjsj || '-' }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="采集人">
+                        {{ currentDetailRow.gather_cjr || '-' }}
+                    </el-descriptions-item>
+                </el-descriptions>
+            </div>
         </el-dialog>
     </div>
 </template>
