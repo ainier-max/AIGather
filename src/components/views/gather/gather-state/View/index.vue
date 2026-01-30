@@ -173,7 +173,7 @@ import VectorSource from 'ol/source/Vector';
 import WKT from 'ol/format/WKT';
 import { Circle as CircleStyle, Fill, Stroke, Style, Icon } from 'ol/style';
 import Feature from 'ol/Feature';
-import { Point } from 'ol/geom';
+import { Point, LineString, Polygon } from 'ol/geom';
 
 const store = gatherStateStore();
 const { gatherStateModel } = storeToRefs(store);
@@ -308,20 +308,65 @@ const renderMapData = () => {
     const features = [];
     gatherStateModel.value.mapData.forEach(item => {
         let feature = null;
-        // Try WKT first (handle case sensitivity)
-        const wkt = item.GATHER_THE_GEOM || item.gather_the_geom || item.GATHER_THE_GEOM_TEXT;
-        if (wkt) {
+
+        // Priority 1: GATHER_ZBC for Lines and Polygons
+        const zbc = item.GATHER_ZBC || item.gather_zbc;
+        const isPolygon = currentNode && currentNode.type && currentNode.type.includes('polygon');
+        const isLine = currentNode && currentNode.type && currentNode.type.includes('polyline');
+
+        if (zbc && (isPolygon || isLine)) {
             try {
-                feature = wktFormat.readFeature(wkt, {
-                    dataProjection: 'EPSG:4326',
-                    featureProjection: 'EPSG:4326'
+                const points = [];
+                const parts = zbc.split(';');
+                parts.forEach(part => {
+                    const [latStr, lngStr] = part.split(',');
+                    if (latStr && lngStr) {
+                        const lat = parseFloat(latStr);
+                        const lng = parseFloat(lngStr);
+                        if (!isNaN(lat) && !isNaN(lng)) {
+                            points.push([lng, lat]);
+                        }
+                    }
                 });
+
+                if (points.length > 1) {
+                    if (isLine) {
+                        feature = new Feature({ geometry: new LineString(points) });
+                    } else if (isPolygon) {
+                        // Close the ring if needed
+                        const first = points[0];
+                        const last = points[points.length - 1];
+                        if (first[0] !== last[0] || first[1] !== last[1]) {
+                            points.push(first);
+                        }
+                        feature = new Feature({ geometry: new Polygon([points]) });
+                    }
+                }
             } catch (e) {
-                // console.warn('WKT Parse Error:', e);
+                console.warn("ZBC Parse Error", e);
             }
         }
 
-        // If no feature yet, try ZBX/ZBY for points
+        // Priority 2: WKT
+        if (!feature) {
+            let wkt = item.GATHER_THE_GEOM || item.gather_the_geom || item.GATHER_THE_GEOM_TEXT;
+            if (wkt) {
+                if (typeof wkt === 'string' && wkt.startsWith('SRID=')) {
+                    const parts = wkt.split(';');
+                    if (parts.length > 1) wkt = parts[1];
+                }
+                try {
+                    feature = wktFormat.readFeature(wkt, {
+                        dataProjection: 'EPSG:4326',
+                        featureProjection: 'EPSG:4326'
+                    });
+                } catch (e) {
+                    // console.warn('WKT Parse Error:', e);
+                }
+            }
+        }
+
+        // Priority 3: ZBX/ZBY for Points
         if (!feature) {
             const x = item.GATHER_ZBX || item.gather_zbx;
             const y = item.GATHER_ZBY || item.gather_zby;
