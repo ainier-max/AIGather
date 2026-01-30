@@ -220,11 +220,14 @@
 .list-table-wrapper {
     flex: 1;
     overflow: auto;
+    width: 100%;
+    /* width: 1279px; */
 }
 
 :deep(.el-table) {
     border-radius: 8px;
     overflow: hidden;
+    width: 100% !important;
 }
 
 :deep(.el-table th.el-table__cell) {

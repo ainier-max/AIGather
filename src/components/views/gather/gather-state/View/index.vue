@@ -128,9 +128,9 @@
                 </div>
 
                 <!-- List Display -->
-                <div class="list-container" v-show="gatherStateModel.displayMode === 'list'">
+                <div class="list-container" v-if="showTable" v-show="gatherStateModel.displayMode === 'list'">
                     <div class="list-table-wrapper" v-if="gatherStateModel.currentNode">
-                        <el-table :data="gatherStateModel.listData" stripe border style="width: 100%">
+                        <el-table ref="listTableRef" :key="tableKey" :data="gatherStateModel.listData" stripe border>
                             <el-table-column type="index" label="序号" width="60" align="center" />
 
                             <!-- Dynamic Columns -->
@@ -229,7 +229,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, watch, computed } from 'vue';
+import { onMounted, ref, watch, computed, nextTick } from 'vue';
 import { storeToRefs } from "pinia";
 import { gatherStateStore } from "@/components/views/gather/gather-state/Controller/gatherStateStore.ts";
 import { Document, FolderOpened, Share, House, Memo, Location, List, Picture, Headset, VideoCamera } from '@element-plus/icons-vue';
@@ -261,6 +261,14 @@ const displayFields = computed(() => {
     if (!gatherStateModel.value || !gatherStateModel.value.fieldArr) return [];
     return gatherStateModel.value.fieldArr.filter(f => f.show_flag == '1' || f.show_flag == '2');
 });
+
+// Table key for forcing re-render when switching layers
+const tableKey = computed(() => {
+    return gatherStateModel.value?.currentNode?.taskid || 'default';
+});
+
+// Control table visibility for complete re-initialization
+const showTable = ref(true);
 
 onMounted(async () => {
     store.initClass();
@@ -484,6 +492,9 @@ const renderMapData = () => {
     }
 };
 
+// Table ref
+const listTableRef = ref(null);
+
 // Watchers
 watch(() => gatherStateModel.value?.mapData, () => {
     if (gatherStateModel.value?.displayMode === 'map') {
@@ -500,8 +511,42 @@ watch(() => gatherStateModel.value?.displayMode, (newMode) => {
                 renderMapData();
             }
         }, 100);
+    } else if (newMode === 'list') {
+        nextTick(() => {
+            listTableRef.value?.doLayout();
+        });
     }
 });
+
+watch(displayFields, () => {
+    nextTick(() => {
+        setTimeout(() => {
+            listTableRef.value?.doLayout();
+        }, 50);
+    });
+});
+
+// Watch currentNode changes to force complete table re-initialization
+watch(() => gatherStateModel.value?.currentNode, () => {
+    if (gatherStateModel.value?.displayMode === 'list') {
+        // Force complete table re-initialization
+        showTable.value = false;
+        nextTick(() => {
+            showTable.value = true;
+        });
+    }
+});
+
+// Watch listData changes to refresh table layout
+watch(() => gatherStateModel.value?.listData, () => {
+    if (gatherStateModel.value?.displayMode === 'list') {
+        nextTick(() => {
+            setTimeout(() => {
+                listTableRef.value?.doLayout();
+            }, 50);
+        });
+    }
+}, { deep: true });
 
 // 获取标题字段 (show_flag = 1)
 const getTitleField = computed(() => {
