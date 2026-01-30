@@ -473,18 +473,25 @@ const renderMapData = () => {
 
         if (zbc && (isPolygon || isLine)) {
             try {
-                const points = [];
-                const parts = zbc.split(';');
-                parts.forEach(part => {
-                    const [latStr, lngStr] = part.split(',');
-                    if (latStr && lngStr) {
-                        const lat = parseFloat(latStr);
-                        const lng = parseFloat(lngStr);
-                        if (!isNaN(lat) && !isNaN(lng)) {
-                            points.push([lng, lat]);
+                // Try to parse as JSON first (new format)
+                let points = [];
+                if (zbc.trim().startsWith('[')) {
+                    points = JSON.parse(zbc); // New format: [[lng, lat], [lng, lat]]
+                } else {
+                    // Fallback to old format: "lat,lng;lat,lng" or "lng,lat;lng,lat" depending on legacy data
+                    // Assuming legacy was handled correctly before as lat,lng according to previous logic
+                    const parts = zbc.split(';');
+                    parts.forEach(part => {
+                        const [latStr, lngStr] = part.split(',');
+                        if (latStr && lngStr) {
+                            const lat = parseFloat(latStr);
+                            const lng = parseFloat(lngStr);
+                            if (!isNaN(lat) && !isNaN(lng)) {
+                                points.push([lng, lat]); // Assuming old format was [lat, lng]
+                            }
                         }
-                    }
-                });
+                    });
+                }
 
                 if (points.length > 1) {
                     if (isLine) {
@@ -661,21 +668,30 @@ const handleCardClick = (item) => {
     if (zbc && (isPolygon || isLine)) {
         try {
             const points = [];
-            const parts = zbc.split(';');
-            parts.forEach(part => {
-                const [latStr, lngStr] = part.split(',');
-                if (latStr && lngStr) {
-                    const lat = parseFloat(latStr);
-                    const lng = parseFloat(lngStr);
-                    if (!isNaN(lat) && !isNaN(lng)) {
-                        points.push([lng, lat]);
+            // Try parse as JSON first
+            if (zbc.trim().startsWith('[')) {
+                const parsed = JSON.parse(zbc);
+                parsed.forEach(pt => points.push(pt)); // [[lng, lat]]
+            } else {
+                // Fallback
+                const parts = zbc.split(';');
+                parts.forEach(part => {
+                    const [latStr, lngStr] = part.split(',');
+                    if (latStr && lngStr) {
+                        const lat = parseFloat(latStr);
+                        const lng = parseFloat(lngStr);
+                        if (!isNaN(lat) && !isNaN(lng)) {
+                            points.push([lng, lat]);
+                        }
                     }
-                }
-            });
+                });
+            }
+
             if (points.length > 1) {
                 if (isLine) {
                     geometry = new LineString(points);
                 } else if (isPolygon) {
+                    // Close the ring if needed
                     const first = points[0];
                     const last = points[points.length - 1];
                     if (first[0] !== last[0] || first[1] !== last[1]) {
@@ -684,8 +700,11 @@ const handleCardClick = (item) => {
                     geometry = new Polygon([points]);
                 }
             }
-        } catch (e) { }
+        } catch (e) {
+            console.warn("ZBC Parse Error in Click", e);
+        }
     }
+
 
     // 2. Try WKT
     if (!geometry) {
