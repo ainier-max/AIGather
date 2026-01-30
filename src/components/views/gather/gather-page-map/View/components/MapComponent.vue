@@ -516,7 +516,7 @@ function fitFeature(feature) {
       try {
         map.value.getView().fit(extent, {
           duration: 1000,
-          padding: [1000, 1000, 1000, 1000] // Padding to ensure feature is not at the very edge
+          padding: [300, 300, 300, 300] // Padding to ensure feature is not at the very edge
         });
       } catch (error) {
         console.error("定位异常", error);
