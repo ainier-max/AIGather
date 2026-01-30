@@ -130,11 +130,82 @@
                 <!-- List Display -->
                 <div class="list-container" v-show="gatherStateModel.displayMode === 'list'">
                     <div class="list-table-wrapper" v-if="gatherStateModel.currentNode">
-                        <el-table :data="gatherStateModel.listData" stripe style="width: 100%">
+                        <el-table :data="gatherStateModel.listData" stripe border style="width: 100%">
                             <el-table-column type="index" label="序号" width="60" align="center" />
+
+                            <!-- Dynamic Columns -->
+                            <el-table-column v-for="field in displayFields" :key="field.field_name"
+                                :prop="field.field_name" :label="field.field_dec"
+                                :width="['photo', 'video', 'audio', 'rich'].includes(field.field_type) ? 120 : ''"
+                                align="center">
+                                <template #default="{ row }">
+                                    <!-- Photo -->
+                                    <div v-if="field.field_type === 'photo' && row[field.field_name]"
+                                        class="table-media-preview">
+                                        <div class="media-icon-wrapper">
+                                            <el-button type="primary" :icon="Picture" circle size="small" />
+                                            <el-image class="hidden-preview-trigger"
+                                                :src="commonApi.getFileUrl(row[field.field_name].split(',')[0], 'photo')"
+                                                :preview-src-list="row[field.field_name].split(',').map(uuid => commonApi.getFileUrl(uuid, 'photo'))"
+                                                preview-teleported fit="cover" />
+                                        </div>
+                                    </div>
+
+                                    <!-- Audio -->
+                                    <div v-else-if="field.field_type === 'audio' && row[field.field_name]"
+                                        class="table-media-preview">
+                                        <el-popover placement="top" :width="300" trigger="hover">
+                                            <template #reference>
+                                                <el-button type="info" :icon="Headset" circle size="small" />
+                                            </template>
+                                            <div class="audio-list-popover">
+                                                <audio v-for="(uuid, idx) in row[field.field_name].split(',')"
+                                                    :key="idx" controls style="width: 100%; margin-bottom: 5px;">
+                                                    <source :src="commonApi.getFileUrl(uuid, 'audio')"
+                                                        type="audio/mpeg">
+                                                </audio>
+                                            </div>
+                                        </el-popover>
+                                    </div>
+
+                                    <!-- Video -->
+                                    <div v-else-if="field.field_type === 'video' && row[field.field_name]"
+                                        class="table-media-preview">
+                                        <el-popover placement="top" :width="320" trigger="hover">
+                                            <template #reference>
+                                                <el-button type="warning" :icon="VideoCamera" circle size="small" />
+                                            </template>
+                                            <div class="video-list-popover">
+                                                <video v-for="(uuid, idx) in row[field.field_name].split(',')"
+                                                    :key="idx" controls
+                                                    style="width: 100%; margin-bottom: 5px; border-radius: 4px;">
+                                                    <source :src="commonApi.getFileUrl(uuid, 'video')" type="video/mp4">
+                                                </video>
+                                            </div>
+                                        </el-popover>
+                                    </div>
+
+                                    <!-- Rich Text -->
+                                    <div v-else-if="field.field_type === 'rich' && row[field.field_name]"
+                                        class="table-media-preview">
+                                        <el-popover placement="top" :width="600" trigger="hover">
+                                            <template #reference>
+                                                <el-button type="success" :icon="Document" circle size="small" />
+                                            </template>
+                                            <div class="rich-list-popover-content">
+                                                <div class="rich-preview-window" v-html="row[field.field_name]"></div>
+                                            </div>
+                                        </el-popover>
+                                    </div>
+
+                                    <!-- Standard Text -->
+                                    <span v-else>{{ row[field.field_name] }}</span>
+                                </template>
+                            </el-table-column>
+
                             <el-table-column prop="gather_cjsj" label="采集时间" width="180" align="center" />
                             <el-table-column prop="gather_cjr" label="采集人" width="120" align="center" />
-                            <el-table-column label="详细信息" align="center">
+                            <el-table-column label="详细信息" align="center" fixed="right" width="120">
                                 <template #default="{ row }">
                                     <el-button type="primary" link size="small">查看详情</el-button>
                                 </template>
@@ -161,7 +232,8 @@
 import { onMounted, ref, watch, computed } from 'vue';
 import { storeToRefs } from "pinia";
 import { gatherStateStore } from "@/components/views/gather/gather-state/Controller/gatherStateStore.ts";
-import { Document, FolderOpened, Share, House, Memo, Location, List } from '@element-plus/icons-vue';
+import { Document, FolderOpened, Share, House, Memo, Location, List, Picture, Headset, VideoCamera } from '@element-plus/icons-vue';
+import commonApi from '@/api/common';
 
 // OpenLayers imports
 import 'ol/ol.css';
@@ -183,6 +255,12 @@ const { gatherStateModel } = storeToRefs(store);
 const map = ref(null);
 const vectorSource = ref(null);
 const wktFormat = new WKT();
+
+// Filter displayed fields (show_flag = 1 or 2)
+const displayFields = computed(() => {
+    if (!gatherStateModel.value || !gatherStateModel.value.fieldArr) return [];
+    return gatherStateModel.value.fieldArr.filter(f => f.show_flag == '1' || f.show_flag == '2');
+});
 
 onMounted(async () => {
     store.initClass();
