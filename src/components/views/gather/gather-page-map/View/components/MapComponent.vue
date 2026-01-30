@@ -406,10 +406,10 @@ function clearMap() {
 
 /**
  * 定位到指定坐标
- * @param {Array} xy - [lat, lng]
+ * @param {Array} xy - [lng, lat]
  */
 function panTo(xy) {
-  const coordinates = fromLonLat([xy[1], xy[0]]);
+  const coordinates = fromLonLat([xy[0], xy[1]]);
   map.value.getView().animate({
     center: coordinates,
     duration: 1000

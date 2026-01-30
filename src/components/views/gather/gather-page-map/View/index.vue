@@ -577,13 +577,13 @@ async function handleContextEdit() {
     // 有坐标数据：在地图上显示并进入编辑状态
     if (type === 'point') {
       const markerJSON = {
-        xy: [data.gather_zby, data.gather_zbx],
+        xy: [data.gather_zbx, data.gather_zby], // [经度, 纬度]
         iconUrl: gatherPageModel.value.layerImg,
         iconAnchor: [21, 42],
         width: 42,
         height: 42
       };
-      mapRef.value.panTo([data.gather_zby, data.gather_zbx]);
+      mapRef.value.panTo([data.gather_zbx, data.gather_zby]); // [经度, 纬度]
       const marker = mapRef.value.addMarker(markerJSON);
       currentDrawnGeometry = marker;
     } else if (type === 'polyline') {
@@ -694,13 +694,13 @@ async function handleItemClick(item) {
   // 在地图上显示要素
   if (type === 'point') {
     const markerJSON = {
-      xy: [data.gather_zby, data.gather_zbx],
+      xy: [data.gather_zbx, data.gather_zby], // [经度, 纬度]
       iconUrl: gatherPageModel.value.layerImg,
       iconAnchor: [21, 42],
       width: 42,
       height: 42
     };
-    mapRef.value.panTo([data.gather_zby, data.gather_zbx]);
+    mapRef.value.panTo([data.gather_zbx, data.gather_zby]); // [经度, 纬度]
     const marker = mapRef.value.addMarker(markerJSON);
     currentDrawnGeometry = marker;
 
