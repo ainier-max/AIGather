@@ -133,7 +133,13 @@
         :close-on-click-modal="false" width="60%">
         <el-table :data="modelClass.tableData" stripe
             style="width: 100%; height: 500px; padding-top: 20px; padding-left: 40px">
-            <el-table-column v-for="(item, i) in modelClass.headerTableData" :prop="item" :label="item" />
+            <el-table-column v-for="(item, i) in modelClass.headerTableData" :prop="item" :label="item" min-width="150">
+                <template #default="scope">
+                    <div style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" :title="scope.row[item] !== null && scope.row[item] !== undefined ? String(scope.row[item]) : ''">
+                        {{ scope.row[item] }}
+                    </div>
+                </template>
+            </el-table-column>
         </el-table>
     </el-dialog>
 
