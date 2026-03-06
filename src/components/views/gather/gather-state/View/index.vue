@@ -130,7 +130,7 @@
                 <!-- List Display -->
                 <div class="list-container" v-if="showTable" v-show="gatherStateModel.displayMode === 'list'">
                     <div class="list-table-wrapper" v-if="gatherStateModel.currentNode">
-                        <el-table ref="listTableRef" :key="tableKey" :data="gatherStateModel.listData" stripe border>
+                        <el-table ref="listTableRef" :key="tableKey" :data="gatherStateModel.listData" stripe border style="width: 100%">
                             <el-table-column type="index" label="序号" width="60" align="center" />
 
                             <!-- Dynamic Columns -->
@@ -203,17 +203,17 @@
                                 </template>
                             </el-table-column>
 
-                            <el-table-column label="采集时间" width="180" align="center">
+                            <el-table-column label="采集时间" min-width="180" align="center">
                                 <template #default="{ row }">
                                     {{ row.gather_cjsj || row.GATHER_CJSJ || '-' }}
                                 </template>
                             </el-table-column>
-                            <el-table-column label="采集人" width="120" align="center">
+                            <el-table-column label="采集人" min-width="120" align="center">
                                 <template #default="{ row }">
                                     {{ row.gather_cjr || row.GATHER_CJR || '-' }}
                                 </template>
                             </el-table-column>
-                            <el-table-column label="详细信息" align="center" fixed="right" width="120">
+                            <el-table-column label="详细信息" align="center" min-width="120">
                                 <template #default="{ row }">
                                     <el-button type="primary" link size="small"
                                         @click="handleViewDetail(row)">查看详情</el-button>
