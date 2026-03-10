@@ -83,6 +83,11 @@ const routes = [
         path: "/tree-dic",
         component: () => import("@/components/views/gather/tree-dic/View/index.vue")
       },
+      {
+        name: "model-chat",
+        path: "/model-chat",
+        component: () => import("@/components/views/gather/model-chat/View/index.vue")
+      },
 
 
 

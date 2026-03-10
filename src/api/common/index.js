@@ -75,6 +75,14 @@ export default {
             method: 'get',
             params: query
         })
+    },
+    //获取大模型开发交流接口
+    getAIModelChat(data) {
+        return request({
+            url: `/cbc/getAIModelChat.cbc`,
+            method: 'get',
+            params: data
+        })
     }
 
 }
