@@ -39,18 +39,25 @@ class ModelClass {
 
         this.socket.onmessage = (event) => {
             console.log("WebSocket received message:", event.data);
-            try {
-                const data = JSON.parse(event.data);
-                this.messages.push({
-                    role: data.role || 'ai',
-                    content: data.content || event.data,
-                    time: new Date().toLocaleTimeString()
-                });
-            } catch (e) {
+            
+            // 如果收到结束信号，不做处理
+            if (event.data === '[DONE]') {
+                return;
+            }
+
+            // 检查最后一条消息是否是 AI 消息
+            const lastMessage = this.messages[this.messages.length - 1];
+            
+            if (lastMessage && lastMessage.role === 'ai' && !lastMessage.completed) {
+                // 追加到最后一条 AI 消息
+                lastMessage.content += event.data;
+            } else {
+                // 创建新的 AI 消息
                 this.messages.push({
                     role: 'ai',
                     content: event.data,
-                    time: new Date().toLocaleTimeString()
+                    time: new Date().toLocaleTimeString(),
+                    completed: false
                 });
             }
         };
@@ -58,6 +65,11 @@ class ModelClass {
         this.socket.onclose = () => {
             console.log("WebSocket disconnected");
             this.isConnected = false;
+            // 标记最后一条 AI 消息为完成
+            const lastMessage = this.messages[this.messages.length - 1];
+            if (lastMessage && lastMessage.role === 'ai') {
+                lastMessage.completed = true;
+            }
             this.messages.push({
                 role: 'system',
                 content: '连接已断开',
@@ -94,9 +106,8 @@ class ModelClass {
         };
 
         this.messages.push(message);
-        this.socket.send(JSON.stringify({
-            content: this.inputText
-        }));
+        // 直接发送文本内容，不需要 JSON 格式
+        this.socket.send(this.inputText);
         this.inputText = "";
     }
 
