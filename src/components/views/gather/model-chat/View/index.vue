@@ -12,7 +12,7 @@
         <div class="chat-messages" ref="messageBox">
             <div v-for="(msg, index) in modelClass?.messages" :key="index"
                 :class="['message-item', `message-${msg.role}`]">
-                <div class="message-content">{{ msg.content }}</div>
+                <div class="message-content" v-html="formatContent(msg.content)"></div>
                 <div class="message-time">{{ msg.time }}</div>
             </div>
         </div>
@@ -32,6 +32,19 @@
 import { onMounted, onUnmounted, ref, watch, nextTick } from "vue";
 import { storeToRefs } from "pinia";
 import { controllerStore } from "@/components/views/gather/model-chat/Controller/controllerStore.ts";
+import { marked } from 'marked';
+import { markedHighlight } from 'marked-highlight';
+import hljs from 'highlight.js';
+import 'highlight.js/styles/github-dark.css';
+
+// 配置 marked 使用代码高亮
+marked.use(markedHighlight({
+    langPrefix: 'hljs language-',
+    highlight(code, lang) {
+        const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+        return hljs.highlight(code, { language }).value;
+    }
+}));
 
 const controllerStoreObj = controllerStore();
 const { modelClass } = storeToRefs(controllerStoreObj);
@@ -53,6 +66,18 @@ const handleSend = () => {
 
 const clearHistory = () => {
     modelClass.value.clearMessages();
+};
+
+// 格式化消息内容 - 使用 marked 解析 Markdown
+const formatContent = (content) => {
+    if (!content) return '';
+    
+    try {
+        return marked.parse(content);
+    } catch (e) {
+        console.error('Markdown parse error:', e);
+        return content.replace(/\n/g, '<br>');
+    }
 };
 
 // Scroll to bottom when new messages arrive

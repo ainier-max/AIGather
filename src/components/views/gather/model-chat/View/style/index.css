@@ -31,7 +31,7 @@
     padding: 10px 15px;
     border-radius: 8px;
     position: relative;
-    word-break: break-all;
+    word-break: break-word;
 }
 
 .message-user {
@@ -52,6 +52,70 @@
     color: #999;
     font-size: 12px;
     padding: 5px 10px;
+}
+
+.message-content {
+    line-height: 1.6;
+}
+
+/* Markdown 样式 */
+.message-content :deep(pre) {
+    background-color: #282c34;
+    border-radius: 6px;
+    padding: 12px;
+    overflow-x: auto;
+    margin: 10px 0;
+}
+
+.message-content :deep(code) {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+}
+
+.message-content :deep(p code) {
+    background-color: rgba(0,0,0,0.08);
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: #e83e8c;
+}
+
+.message-content :deep(h1),
+.message-content :deep(h2),
+.message-content :deep(h3) {
+    margin-top: 16px;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+.message-content :deep(ul),
+.message-content :deep(ol) {
+    padding-left: 20px;
+    margin: 8px 0;
+}
+
+.message-content :deep(blockquote) {
+    border-left: 4px solid #ddd;
+    padding-left: 12px;
+    margin: 8px 0;
+    color: #666;
+}
+
+.message-content :deep(table) {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 10px 0;
+}
+
+.message-content :deep(table th),
+.message-content :deep(table td) {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.message-content :deep(table th) {
+    background-color: #f5f5f5;
+    font-weight: bold;
 }
 
 .message-time {
