@@ -86,7 +86,13 @@
                                 <el-icon>
                                     <UserFilled />
                                 </el-icon>
-                                <span>模型管理</span>
+                                <span>接口管理</span>
+                            </el-menu-item>
+                            <el-menu-item index="9" v-if="userType !== 'normal'">
+                                <el-icon>
+                                    <Connection />
+                                </el-icon>
+                                <span>接口测试</span>
                             </el-menu-item>
                             <el-menu-item index="8" v-if="userType !== 'normal'">
                                 <el-icon>
@@ -94,6 +100,7 @@
                                 </el-icon>
                                 <span>模型交流</span>
                             </el-menu-item>
+                            
 
                         </el-menu>
                     </div>
@@ -113,7 +120,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { User, ArrowDown, Document, Location, Menu, DataAnalysis, Files, UserFilled, ChatSquare } from '@element-plus/icons-vue';
+import { User, ArrowDown, Document, Location, Menu, DataAnalysis, Files, UserFilled, ChatSquare, Connection } from '@element-plus/icons-vue';
 
 const router = useRouter();
 const activeIndex = ref('1');
@@ -204,6 +211,10 @@ const handleSelect_menu = (key, keyPath) => {
     if (key == "8") {
         console.log("模型交流");
         router.push('/model-chat')
+    }
+    if (key == "9") {
+        console.log("接口测试");
+        router.push('/api-test')
     }
 };
 

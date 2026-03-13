@@ -88,6 +88,11 @@ const routes = [
         path: "/model-chat",
         component: () => import("@/components/views/gather/model-chat/View/index.vue")
       },
+      {
+        name: "api-test",
+        path: "/api-test",
+        component: () => import("@/components/views/gather/api-test/View/index.vue")
+      },
 
 
 
