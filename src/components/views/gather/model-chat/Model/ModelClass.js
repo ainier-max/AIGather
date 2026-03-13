@@ -22,7 +22,7 @@ class ModelClass {
         // 使用当前主机的 IP，端口改为后端端口 8087
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const host = window.location.hostname;
-        const wsUrl = `${protocol}//${host}:8087/api/ai/chat`;
+        const wsUrl = window.config.wsUrl;
 
         console.log("Connecting to WebSocket:", wsUrl);
         this.socket = new WebSocket(wsUrl);
