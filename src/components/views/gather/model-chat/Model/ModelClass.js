@@ -31,9 +31,10 @@ class ModelClass {
             console.log("WebSocket connected");
             this.isConnected = true;
             this.messages.push({
-                role: 'system',
-                content: '已连接到大模型开发交流接口',
-                time: new Date().toLocaleTimeString()
+                role: 'ai',
+                content: '你好！我是一个图层数据查询助手，可以帮您：\n\n📋 查询所有图层列表\n\n🔢 查询指定图层的数据条数\n\n📊 查询指定图层的数据详情\n\n请问有什么可以帮您的吗？',
+                time: new Date().toLocaleTimeString(),
+                completed: true
             });
         };
 
