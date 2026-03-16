@@ -12,6 +12,13 @@
         <div class="chat-messages" ref="messageBox">
             <div v-for="(msg, index) in modelClass?.messages" :key="index"
                 :class="['message-item', `message-${msg.role}`]">
+                <div v-if="msg.thinking" class="thinking-process">
+                    <div class="thinking-header">
+                        <svg class="thinking-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Thinking Process
+                    </div>
+                    <div class="thinking-content">{{ msg.thinking }}</div>
+                </div>
                 <div class="message-content" v-html="formatContent(msg.content)"></div>
                 <div class="message-time">{{ msg.time }}</div>
             </div>

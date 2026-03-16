@@ -40,22 +40,33 @@ class ModelClass {
         this.socket.onmessage = (event) => {
             console.log("WebSocket received message:", event.data);
             
-            // 如果收到结束信号，不做处理
+            // 如果收到结束信号，标记完成
             if (event.data === '[DONE]') {
+                const lastMessage = this.messages[this.messages.length - 1];
+                if (lastMessage && lastMessage.role === 'ai') {
+                    lastMessage.completed = true;
+                }
                 return;
             }
+
+            // 检查是否是思考过程
+            const isThinking = event.data.startsWith('[THINKING]');
+            const text = isThinking ? event.data.slice(10) : event.data;
 
             // 检查最后一条消息是否是 AI 消息
             const lastMessage = this.messages[this.messages.length - 1];
             
             if (lastMessage && lastMessage.role === 'ai' && !lastMessage.completed) {
-                // 追加到最后一条 AI 消息
-                lastMessage.content += event.data;
+                if (isThinking) {
+                    lastMessage.thinking = (lastMessage.thinking || '') + text;
+                } else {
+                    lastMessage.content += text;
+                }
             } else {
-                // 创建新的 AI 消息
                 this.messages.push({
                     role: 'ai',
-                    content: event.data,
+                    content: isThinking ? '' : text,
+                    thinking: isThinking ? text : '',
                     time: new Date().toLocaleTimeString(),
                     completed: false
                 });
