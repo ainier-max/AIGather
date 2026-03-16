@@ -112,6 +112,12 @@ const examples = [
             "phone2": "用户手机号更新5"
         }, null, 2)
     },
+    {
+        name: 'select-查询所有消防栓',
+        method: 'POST',
+        url: 'http://127.0.0.1:8087/cbc/select.cbc',
+        body: JSON.stringify({ sql: 'gather.findAllXFS' }, null, 2)
+    }
 
 ];
 
