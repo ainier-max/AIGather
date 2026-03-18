@@ -46,6 +46,7 @@ class ModelClass {
                 const lastMessage = this.messages[this.messages.length - 1];
                 if (lastMessage && lastMessage.role === 'ai') {
                     lastMessage.completed = true;
+                    delete lastMessage.isWaiting;
                 }
                 return;
             }
@@ -58,6 +59,11 @@ class ModelClass {
             const lastMessage = this.messages[this.messages.length - 1];
             
             if (lastMessage && lastMessage.role === 'ai' && !lastMessage.completed) {
+                // 移除等待状态
+                if (lastMessage.isWaiting) {
+                    delete lastMessage.isWaiting;
+                }
+                
                 if (isThinking) {
                     lastMessage.thinking = (lastMessage.thinking || '') + text;
                 } else {
@@ -118,6 +124,16 @@ class ModelClass {
         };
 
         this.messages.push(message);
+        
+        // 添加等待提示
+        this.messages.push({
+            role: 'ai',
+            content: '',
+            time: new Date().toLocaleTimeString(),
+            completed: false,
+            isWaiting: true
+        });
+        
         // 直接发送文本内容，不需要 JSON 格式
         this.socket.send(this.inputText);
         this.inputText = "";

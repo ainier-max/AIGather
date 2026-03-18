@@ -19,7 +19,10 @@
                     </div>
                     <div class="thinking-content">{{ msg.thinking }}</div>
                 </div>
-                <div class="message-content" v-html="formatContent(msg.content)"></div>
+                <div v-if="msg.isWaiting" class="typing-indicator">
+                    <span></span><span></span><span></span>
+                </div>
+                <div v-else class="message-content" v-html="formatContent(msg.content)"></div>
                 <div class="message-time">{{ msg.time }}</div>
             </div>
         </div>
