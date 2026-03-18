@@ -90,14 +90,14 @@ const formatContent = (content) => {
     }
 };
 
-// Scroll to bottom when new messages arrive
-watch(() => modelClass.value?.messages.length, () => {
+// Scroll to bottom when messages change
+watch(() => modelClass.value?.messages, () => {
     nextTick(() => {
         if (messageBox.value) {
             messageBox.value.scrollTop = messageBox.value.scrollHeight;
         }
     });
-});
+}, { deep: true });
 
 </script>
 
