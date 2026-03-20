@@ -121,6 +121,7 @@
                     <div align="center" style="padding-top: 10px">
                         <el-button type="primary" @click="modelClass.onSubmit()">保存</el-button>
                         <el-button type="success" @click="modelClass.onTest()">测试</el-button>
+                        <el-button type="warning" @click="goApiTest">接口测试</el-button>
                     </div>
 
                     <div style="height: 30px"></div>
@@ -183,15 +184,45 @@
 
 <script setup>
 import { onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
 import { gatherModelStore } from "@/components/views/gather/gather-model/Controller/gatherModelStore.ts";
 import MyMonacoEditor from "@/components/views/gather/gather-model/View/components/MyMonacoEditor/index.vue";
 import { Folder, Plus, Delete } from '@element-plus/icons-vue';
 
+const router = useRouter();
 const controllerStoreObj = gatherModelStore();
 const { modelClass } = storeToRefs(controllerStoreObj);
 
 const dataModelTreeRef = ref(null);
+
+const goApiTest = () => {
+    const current = modelClass.value?.currentDataModelTreeNodeData;
+    if (!current?.data_model_id || !current?.name_space) {
+        router.push('/api-test');
+        return;
+    }
+
+    const sql = `${current.name_space}.${current.data_model_id}`;
+    let bodyObj = { sql };
+    try {
+        bodyObj = {
+            ...JSON.parse(current.data_model_param || '{}'),
+            sql
+        };
+    } catch (e) {
+        bodyObj = { sql };
+    }
+
+    router.push({
+        path: '/api-test',
+        query: {
+            method: 'POST',
+            url: 'http://127.0.0.1:8087/cbc/select.cbc',
+            body: JSON.stringify(bodyObj)
+        }
+    });
+};
 
 onMounted(async () => {
     controllerStoreObj.initClass();

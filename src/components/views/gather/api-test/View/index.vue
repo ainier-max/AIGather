@@ -73,10 +73,12 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import axios from 'axios';
 import { ElMessage } from 'element-plus';
 
+const route = useRoute();
 const method = ref('POST');
 const url = ref('');
 const requestBody = ref('');
@@ -201,6 +203,26 @@ const copyResponse = () => {
     navigator.clipboard.writeText(responseText.value);
     ElMessage.success('已复制到剪贴板');
 };
+
+onMounted(() => {
+    if (route.query.method) {
+        method.value = String(route.query.method).toUpperCase();
+    }
+    if (route.query.url) {
+        url.value = String(route.query.url);
+    }
+    if (route.query.body) {
+        try {
+            const bodyObj = JSON.parse(String(route.query.body));
+            requestBody.value = JSON.stringify(bodyObj, null, 2);
+        } catch (e) {
+            requestBody.value = String(route.query.body);
+        }
+    }
+    if (route.query.url || route.query.body) {
+        activeTab.value = 'body';
+    }
+});
 </script>
 
 <style scoped>
