@@ -30,9 +30,20 @@ class ModelClass {
         this.socket.onopen = () => {
             console.log("WebSocket connected");
             this.isConnected = true;
+            let contentStrArr=[
+                "📋 **查询所有图层列表** - 查看系统中有哪些图层\n\n",
+                "🔢 **查询指定图层的数据总条数** - 查看某个图层有多少条数据\n\n",
+                "📊 **查询指定图层的数据列表** - 查看某个图层的数据内容\n\n",
+                "🔍 **查询指定图层中某条数据的详情** - 查看某条具体数据的详细信息\n\n",
+            ];
+            let contentStr="你好！我是图层数据查询助手，可以帮你查询以下内容：\n\n";
+            contentStrArr.forEach(item => {
+                contentStr += item;
+            });
+            contentStr += "\n请问有什么可以帮您的吗？";
             this.messages.push({
                 role: 'ai',
-                content: '你好！我是一个图层数据查询助手，可以帮您：\n\n📋 查询所有图层列表\n\n🔢 查询指定图层（如网吧、加油站、学校）的数据总条数\n\n📊 查询指定图层的数据列表\n\n请问有什么可以帮您的吗？',
+                content: contentStr,
                 time: new Date().toLocaleTimeString(),
                 completed: true
             });
