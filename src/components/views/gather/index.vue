@@ -117,15 +117,39 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, onMounted, watch } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { User, ArrowDown, Document, Location, Menu, DataAnalysis, Files, UserFilled, ChatSquare, Connection } from '@element-plus/icons-vue';
 
 const router = useRouter();
+const route = useRoute();
 const activeIndex = ref('1');
 const userid = ref('');
 const userType = ref('');
+
+const routeToMenuMap = {
+    '/gather-state': '1',
+    '/gather-task': '2',
+    '/task-apply': '3-1',
+    '/task-approval': '3-2',
+    '/task-deploy': '3-3',
+    '/task-detail': '3-4',
+    '/task-distribution': '3-5',
+    '/select-dic': '4',
+    '/tree-dic': '5',
+    '/user-manager': '6',
+    '/gather-model': '7',
+    '/model-chat': '8',
+    '/api-test': '9'
+};
+
+const syncActiveMenuByRoute = (path) => {
+    const menuIndex = routeToMenuMap[path];
+    if (menuIndex) {
+        activeIndex.value = menuIndex;
+    }
+};
 
 onMounted(() => {
     // 获取登录用户信息
@@ -138,10 +162,17 @@ onMounted(() => {
     }
 
     // 普通用户默认跳转到采集任务
-    if (userType.value === 'normal') {
+    if (userType.value === 'normal' && route.path === '/gather') {
         activeIndex.value = '2';
         router.push('/gather-task');
+        return;
     }
+
+    syncActiveMenuByRoute(route.path);
+});
+
+watch(() => route.path, (newPath) => {
+    syncActiveMenuByRoute(newPath);
 });
 
 const handleCommand = (command) => {
