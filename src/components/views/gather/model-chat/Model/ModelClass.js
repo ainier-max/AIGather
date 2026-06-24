@@ -36,7 +36,7 @@ class ModelClass {
                 "📊 **查询指定图层的数据列表** - 查看某个图层的数据内容\n\n",
                 "🔍 **查询指定图层中某条数据的详情** - 查看某条具体数据的详细信息\n\n",
             ];
-            let contentStr="你好！我是图层数据查询助手，可以帮你查询以下内容：\n\n";
+            let contentStr="你好！我是查询助手，可以帮你查询以下内容：\n\n";
             contentStrArr.forEach(item => {
                 contentStr += item;
             });
